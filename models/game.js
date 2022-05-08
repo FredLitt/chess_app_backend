@@ -15,13 +15,14 @@ mongoose.connect(url)
 const gameSchema = new mongoose.Schema({
     moveHistory: [
         {piece: {
-            type: String,
+            pieceType: String,
             color: String
         },
         from: [Number],
         to: [Number] 
     }]
 })
+
 
 gameSchema.set('toJSON', {
     transform: (Document, returnedObject) => {
