@@ -29,21 +29,12 @@ app.post('/api/games', (request, response, next) => {
 app.post('/api/games/:id/moves', (request, response, next) => {
   const move = request.body
 
-  Game.findById(request.params.id)
-    .then(game => {
-      const newGame = {
-        moveHistory: [...game.moveHistory, move]
-      }
-      console.log(newGame)
-      Game.findByIdAndUpdate(
-        request.params.id, newGame)
-        .then(updatedGame => {
-          console.log(updatedGame)
-          response.json(updatedGame)
-        })
-        .catch(error => next(error))
-    })
-    .catch(error => next(error))
+  Game.findByIdAndUpdate(request.params.id, {$push: {moveHistory: move}})
+    .then(updatedGame => {
+            console.log(updatedGame)
+            response.json(updatedGame)
+          })
+          .catch(error => next(error))
 })
   
 app.post('/api/persons', (request, response, next) => {
