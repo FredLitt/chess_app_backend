@@ -12,48 +12,29 @@ mongoose.connect(url)
     console.log('error connecting to MongoDB:', error.message)
   })
 
-const gameSchema = new mongoose.Schema({
-    moveHistory: [
-        {
-        piece: {
-            pieceType: {
-                type: String,
-                validator: function(x){
-                    return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
-                },
-                message: '{VALUE] is not a valid piece type'
-        },
-        color: {
-            type: String,
-            validator: function(x){
-                return /^white$|^black$/g.test(x)
-            },
-          }
-        },
-        from: [Number],
-        to: [Number] 
-    }]
-})
-
-const personSchema = new mongoose.Schema({
-    name: { 
+const moveSchema = new mongoose.Schema({
+  piece: {
+    pieceType: {
       type: String,
-      minLength: 3,
-      required: true
-    },
-    number: {
-      type: String,
-      validate: {
-        validator: function(x) {
-          return /^\d{3}-\d{3}-\d{4}$/.test(x)
-        },
-        message: '{VALUE} is not a valid phone number'
+      validator: function(x){
+        return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
       },
-      minLength: 8,
-      required: true
-    }
+      message: '{VALUE] is not a valid piece type'
+  },
+  color: {
+    type: String,
+    validator: function(x){
+      return /^white$|^black$/g.test(x)
+    },
+  },
+  from: [Number],
+  to: [Number] 
+  }
 })
 
+const gameSchema = new mongoose.Schema({
+    moveHistory: [ moveSchema ]
+})
 
 gameSchema.set('toJSON', {
     transform: (Document, returnedObject) => {

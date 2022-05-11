@@ -1,10 +1,6 @@
 const pieces = require('./pieces.js')
 
 class Game {
-    constructor(){
-        this.turn = 0
-    }
-
     createEmptyBoard(){
         const board = []
         for (let row = 0; row < 8; row ++){
@@ -48,12 +44,15 @@ class Game {
         }
 
     createBoardFromMoveHistory(moveHistory){
-        const startingBoard = this.createStartPosition()
+        const board = this.createStartPosition()
+        for (let i = 0; i < moveHistory.length; i++){
+            this.playMove(board, moveHistory[i])
+        }
+        console.log(board[3][3], board[4][5])
+        return board
     }
 
     playMove(boardPosition, move){
-        // boardPosition = 2d array of squares
-        // move includes: piece, fromSquare, toSquare
         const movingPiece = move.piece
         const [ fromRow, fromCol ] = move.fromSquare
         const [ toRow, toCol ] = move.toSquare
@@ -65,14 +64,39 @@ class Game {
 
 const game = new Game()
 
-const move = {
+const moves = [{
     piece: pieces.whitePawn,
-    fromSquare: [3, 3],
+    fromSquare: [1, 3],
+    toSquare: [3, 3]
+},
+{
+    piece: pieces.blackPawn,
+    fromSquare: [6, 3],
+    toSquare: [4, 3]
+},
+{
+    piece: pieces.whiteKnight,
+    fromSquare: [0, 1],
+    toSquare: [2, 2]
+},
+{
+    piece: pieces.blackKnight,
+    fromSquare: [7, 6],
+    toSquare: [5, 5]
+},
+{
+    piece: pieces.whiteBishop,
+    fromSquare: [0, 2],
     toSquare: [3, 5]
+},
+{
+    piece: pieces.blackBishop,
+    fromSquare: [7, 2],
+    toSquare: [4, 5]
 }
+]
 
-const board = game.createStartPosition()
+game.createBoardFromMoveHistory(moves)
 
-game.playMove(board, move)
 
 module.exports = Game
