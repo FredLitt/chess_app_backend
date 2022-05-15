@@ -1,4 +1,4 @@
-POST http://localhost:3001/api/games/627fd84889d8e8194e56a012/moves HTTP/1.1
+POST http://localhost:3001/api/games/628124141df887e0ebdb0d1d/moves HTTP/1.1
 content-type: application/json
 
 {

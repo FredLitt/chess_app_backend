@@ -37,8 +37,6 @@ const moveSchema = new mongoose.Schema({
     }
   },
 
-
-  // [x , y] x & y are min: 0, max: 7
   fromSquare: {
     type: Array,
     required: true,
