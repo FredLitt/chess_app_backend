@@ -4,8 +4,7 @@ const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
 const mongoose = require('mongoose')
-const Person = require('./models/person')
-const Game = require('./models/game')
+const { Game, Move } = require('./models/game')
 
 app.use(express.static('build'))
 app.use(express.json())
@@ -27,33 +26,21 @@ app.post('/api/games', (request, response, next) => {
 })
 
 app.post('/api/games/:id/moves', (request, response, next) => {
-  const move = request.body
-
-  Game.findByIdAndUpdate(request.params.id, {$push: {moveHistory: move}})
-    .then(updatedGame => {
-            console.log(updatedGame)
-            response.json(updatedGame)
-          })
-          .catch(error => next(error))
-})
-  
-app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
-  const missingInfo = (!body.name || !body.number)
-  if (missingInfo) {
-      return response.status(400).json( { error: 'Missing information' } )
-  }
-
-  const person = new Person({
-      name: body.name,
-      number: body.number
+  const move = new Move({
+    piece: body.piece
   })
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
-  .catch(error => next(error))
+  Game.findByIdAndUpdate(
+    request.params.id, 
+    { $push: { moveHistory: move }},
+    { new: true, runValidators: true })
+      .then(updatedGame => {
+              console.log(updatedGame)
+              response.json(updatedGame)
+            })
+            .catch(error => next(error))
 })
 
 const errorHandler = (error, request, response, next) => {
@@ -72,53 +59,6 @@ if (process.argv.length < 3) {
   console.log('Please provide the password as an argument: node mongo.js <password>')
   process.exit(1)
 }
-
-app.get('/', (request, response) => {
-    response.send('<h1>Persons</h1>')
-  })
-
-app.get('/api/persons', (request, response) => {
-    Person.find({}).then(persons => {
-      response.json(persons)
-    })
-  })
-
-app.get('/api/persons/:id', (request, response, next) => {
-  Person.findById(request.params.id)
-    .then(person => {
-      if (person) {
-        response.json(person)
-      } else {
-        response.status(404).end()
-      }
-    })
-    .catch(error => next(error))
-})
-
-app.put('/api/persons/:id', (request, response, next) => {
-  const { name, number } = request.body
-  const body = request.body
-
-  const person = {
-    name: body.name,
-    number: body.number,
-  }
-
-  Person.findByIdAndUpdate(
-    request.params.id, person)
-    .then(updatedPerson => {
-      response.json(updatedPerson)
-    })
-    .catch(error => next(error))
-})
-
-app.delete('/api/persons/:id', (request, response, next) => {
-    Person.findByIdAndRemove(request.params.id)
-    .then(result => {
-      response.status(204).end()
-    })
-    .catch(error => next(error))
-})
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })

@@ -12,23 +12,37 @@ mongoose.connect(url)
     console.log('error connecting to MongoDB:', error.message)
   })
 
-const moveSchema = new mongoose.Schema({
-  piece: {
-    pieceType: {
-      type: String,
+const pieceSchema = new mongoose.Schema({
+  pieceType: {
+    type: String,
+    required: true,
+    validate: {
       validator: function(x){
         return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
       },
       message: '{VALUE] is not a valid piece type'
+    },
   },
   color: {
     type: String,
-    validator: function(x){
-      return /^white$|^black$/g.test(x)
+    required: true,
+    validate: {
+      validator: function(x){
+        return /^white$|^black$/g.test(x)
+      },
     },
-  },
-  from: [Number],
-  to: [Number] 
+  }
+})
+
+const moveSchema = new mongoose.Schema({
+  piece: {
+    type: String,
+    required: true,
+    validate: {
+      validator: function(x){
+        return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/gm.test(x)
+      },
+    },
   }
 })
 
@@ -44,4 +58,7 @@ gameSchema.set('toJSON', {
     }
 })
 
-module.exports = mongoose.model("Game", gameSchema)
+const Game = mongoose.model("Game", gameSchema)
+const Move = mongoose.model("Move", moveSchema)
+
+module.exports = { Game, Move }

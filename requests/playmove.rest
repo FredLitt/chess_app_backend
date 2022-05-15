@@ -1,11 +1,6 @@
-POST http://localhost:3001/api/games/6279dcf3ca6ccdf1bbd7186f/moves HTTP/1.1
+POST http://localhost:3001/api/games/627fd84889d8e8194e56a012/moves HTTP/1.1
 content-type: application/json
 
 {
-    "piece": {
-        "pieceType": "horse",
-        "color": "white"
-    },
-    "from": [1, 1],
-    "to": [2, 2] 
+    "piece": "king"
 }

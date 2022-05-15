@@ -1,4 +1,11 @@
 const pieces = require('./pieces.js')
+const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing, 
+    blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing } = pieces
+
+// Idea for chess logic refactor:
+// No need to store captured pieces, turnNumber, or other mutable data...
+// Instead just ascertain all of these things when needed from a move history, 
+// this obviates unnecessary data storage
 
 class Game {
     createEmptyBoard(){
@@ -20,26 +27,26 @@ class Game {
     createStartPosition(){
         const board = this.createEmptyBoard()
         for (let i = 0; i < 8; i++){
-            board[1][i].piece = pieces.whitePawn
-            board[6][i].piece = pieces.blackPawn
+            board[1][i].piece = whitePawn
+            board[6][i].piece = blackPawn
           }
-          board[0][0].piece = pieces.whiteRook
-          board[0][1].piece = pieces.whiteKnight
-          board[0][2].piece = pieces.whiteBishop
-          board[0][3].piece = pieces.whiteKing
-          board[0][4].piece = pieces.whiteQueen
-          board[0][5].piece = pieces.whiteBishop
-          board[0][6].piece = pieces.whiteKnight
-          board[0][7].piece = pieces.whiteRook
+          board[0][0].piece = whiteRook
+          board[0][1].piece = whiteKnight
+          board[0][2].piece = whiteBishop
+          board[0][3].piece = whiteKing
+          board[0][4].piece = whiteQueen
+          board[0][5].piece = whiteBishop
+          board[0][6].piece = whiteKnight
+          board[0][7].piece = whiteRook
 
-          board[7][0].piece = pieces.blackRook
-          board[7][1].piece = pieces.blackKnight
-          board[7][2].piece = pieces.blackBishop
-          board[7][3].piece = pieces.blackKing
-          board[7][4].piece = pieces.blackQueen
-          board[7][5].piece = pieces.blackBishop
-          board[7][6].piece = pieces.blackKnight
-          board[7][7].piece = pieces.blackRook
+          board[7][0].piece = blackRook
+          board[7][1].piece = blackKnight
+          board[7][2].piece = blackBishop
+          board[7][3].piece = blackKing
+          board[7][4].piece = blackQueen
+          board[7][5].piece = blackBishop
+          board[7][6].piece = blackKnight
+          board[7][7].piece = blackRook
           return board
         }
 
@@ -48,7 +55,6 @@ class Game {
         for (let i = 0; i < moveHistory.length; i++){
             this.playMove(board, moveHistory[i])
         }
-        console.log(board[3][3], board[4][5])
         return board
     }
 
@@ -63,40 +69,5 @@ class Game {
 }
 
 const game = new Game()
-
-const moves = [{
-    piece: pieces.whitePawn,
-    fromSquare: [1, 3],
-    toSquare: [3, 3]
-},
-{
-    piece: pieces.blackPawn,
-    fromSquare: [6, 3],
-    toSquare: [4, 3]
-},
-{
-    piece: pieces.whiteKnight,
-    fromSquare: [0, 1],
-    toSquare: [2, 2]
-},
-{
-    piece: pieces.blackKnight,
-    fromSquare: [7, 6],
-    toSquare: [5, 5]
-},
-{
-    piece: pieces.whiteBishop,
-    fromSquare: [0, 2],
-    toSquare: [3, 5]
-},
-{
-    piece: pieces.blackBishop,
-    fromSquare: [7, 2],
-    toSquare: [4, 5]
-}
-]
-
-game.createBoardFromMoveHistory(moves)
-
 
 module.exports = Game
