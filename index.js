@@ -32,10 +32,22 @@ app.post('/api/games/:id/moves', (request, response, next) => {
     { $push: { moveHistory: move }},
     { new: true, runValidators: true })
       .then(updatedGame => {
-              console.log(updatedGame)
-              response.json(updatedGame)
-            })
-            .catch(error => next(error))
+        console.log(updatedGame)
+        response.json(updatedGame)
+      })
+      .catch(error => next(error))
+})
+
+app.delete('/api/games/:id', (request, response, next) => {
+  Game.updateOne(
+    { _id: request.params.id },
+    { $pop: { moveHistory: 1 }},
+    { new: true })
+      .then(document => {
+        console.log(document)
+        response.json(document)
+      })
+      .catch(error => next(error))
 })
 
 const errorHandler = (error, request, response, next) => {
