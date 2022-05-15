@@ -26,11 +26,7 @@ app.post('/api/games', (request, response, next) => {
 })
 
 app.post('/api/games/:id/moves', (request, response, next) => {
-  const body = request.body
-
-  const move = new Move({
-    piece: body.piece
-  })
+  const move = request.body
 
   Game.findByIdAndUpdate(
     request.params.id, 

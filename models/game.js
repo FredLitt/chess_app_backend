@@ -12,38 +12,53 @@ mongoose.connect(url)
     console.log('error connecting to MongoDB:', error.message)
   })
 
-const pieceSchema = new mongoose.Schema({
-  pieceType: {
-    type: String,
-    required: true,
-    validate: {
-      validator: function(x){
-        return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
+const moveSchema = new mongoose.Schema({
+
+  piece: {
+    pieceType: {
+      type: String,
+      required: true,
+      validate: {
+        validator: function(x){
+          return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
+        },
+        message: '{VALUE] is not a valid piece type'
       },
-      message: '{VALUE] is not a valid piece type'
+    },
+
+    color: {
+      type: String,
+      required: true,
+      validate: {
+        validator: function(x){
+          return /^white$|^black$/g.test(x)
+        },
+      },
+    }
+  },
+
+
+  // [x , y] x & y are min: 0, max: 7
+  fromSquare: {
+    type: Array,
+    required: true,
+      validate: {
+      validator: function(x){
+        return /[0-7],[0-7]/.test(x)
+      },
     },
   },
-  color: {
-    type: String,
-    required: true,
-    validate: {
-      validator: function(x){
-        return /^white$|^black$/g.test(x)
-      },
-    },
-  }
-})
 
-const moveSchema = new mongoose.Schema({
-  piece: {
-    type: String,
+  toSquare: {
+    type: Array,
     required: true,
-    validate: {
+      validate: {
       validator: function(x){
-        return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/gm.test(x)
+        return /[0-7],[0-7]/.test(x)
       },
     },
-  }
+  },
+
 })
 
 const gameSchema = new mongoose.Schema({
