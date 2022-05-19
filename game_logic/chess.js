@@ -145,13 +145,6 @@ class Game {
         return false
     }
 
-    squaresAreTheSame(square1, square2){
-        if (square1[0] === square2[0] && square1[1] === square2[1]){
-            return true
-        }
-        return false
-    }
-
     // validateKnightMove(board, move){
 
     // }
@@ -186,6 +179,21 @@ class Game {
         board[toRow][toCol].piece = movingPiece
         return board
     }
+
+    squaresAreTheSame(square1, square2){
+        if (square1[0] === square2[0] && square1[1] === square2[1]){
+            return true
+        }
+        return false
+    }
+
+    getPieceAtSquare(board, square){
+        const [ row, col ] = square
+        if (board[row][col].piece === null){
+            return null
+        }
+        return board[row][col].piece
+    }
 }
 
 const move = {
@@ -193,6 +201,7 @@ const move = {
     fromSquare: [1, 3],
     toSquare: [2, 3]
 }
+
 const game = new Game()
 const board = game.createStartPosition()
 game.playMove(board, move)
