@@ -1,6 +1,5 @@
-const pieces = require('./pieces.js')
 const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing, 
-    blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing } = pieces
+    blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing } = require('./pieces.js')
 
 // Idea for chess logic refactor:
 // No need to store captured pieces, turnNumber, or other mutable data...
@@ -68,23 +67,28 @@ class Game {
 
     // With a given board and move, returns true if legal move, else false
     isMoveLegal(board, move){
+        const movingPiece = this.getPieceAtSquare(board, move.fromSquare)
+
+        if (movingPiece === null){
+            return false
+        }
         
-        if (move.piece.type === "pawn"){
+        if (movingPiece === "pawn"){
             return this.validatePawnMove(board, move)
         }
-        if (move.piece.type === "knight"){
+        if (movingPiece === "knight"){
             return this.validateKnightMove(board, move)
         }
-        if (move.piece.type === "bishop"){
+        if (movingPiece === "bishop"){
             return this.validateBishopMove(board, move)
         }
-        if (move.piece.type === "rook"){
+        if (movingPiece === "rook"){
             return this.validateRookMove(board, move)
         }
-        if (move.piece.type === "queen"){
+        if (movingPiece === "queen"){
             return this.validateQueenMove(board, move)
         }
-        if (move.piece.type === "king"){
+        if (movingPiece === "king"){
             return this.validateKingMove(board, move)
         }
     }
@@ -92,9 +96,8 @@ class Game {
     validatePawnMove(board, move){
         console.log("checking pawn move")
         let pawnMoves
-        const movingPawnColor = move.piece.color
-        const [ fromRow, fromCol ] = move.fromSquare 
-        const [ toRow, toCol ] = move.toSquare
+        const [ fromCol, fromRow ] = move.fromSquare
+        const movingPawnColor = board[fromCol][fromRow].piece.color
         
         if (movingPawnColor === "white"){
             pawnMoves = {
@@ -192,16 +195,15 @@ class Game {
 
     // Returns updated board if move is legal and original board if not legal
     playMove(board, move){
-
         if (!this.isMoveLegal(board, move)){
             return false
         }
         console.log("playing the move", move)
-        const movingPiece = move.piece
-        const [ fromRow, fromCol ] = move.fromSquare
-        const [ toRow, toCol ] = move.toSquare
-        board[fromRow][fromCol].piece = null
-        board[toRow][toCol].piece = movingPiece
+        const [ fromCol, fromRow ] = move.fromSquare
+        const [ toCol, toRow ] = move.toSquare
+        const movingPiece = board[fromCol][fromRow].piece
+        board[fromCol][fromRow].piece = null
+        board[toCol][toRow].piece = movingPiece
         return board
     }
 
@@ -230,7 +232,6 @@ class Game {
 }
 
 const move = {
-    piece: whitePawn,
     fromSquare: [1, 3],
     toSquare: [2, 3]
 }

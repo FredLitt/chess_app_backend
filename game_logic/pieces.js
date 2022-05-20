@@ -1,73 +1,15 @@
-const pieces = {}
+const whitePawn = { type: "pawn", color: "white" }
+const whiteKnight = { type: "pawn", color: "white" }
+const whiteBishop = { type: "pawn", color: "white" }
+const whiteRook = { type: "pawn", color: "white" }
+const whiteQueen = { type: "queen", color: "white" }
+const whiteKing = { type: "king", color: "white" }
 
-class King {
-    constructor(color) {
-      this.type = "king"
-      this.color = color
-    }
-}
+const blackPawn = { type: "pawn", color: "black" }
+const blackKnight = { type: "knight", color: "black" }
+const blackBishop = { type: "bishop", color: "black" }
+const blackRook = { type: "rook", color: "black" }
+const blackQueen = { type: "queen", color: "black" }
+const blackKing = { type: "king", color: "black" }
 
-class Queen {
-    constructor(color) {
-      this.type = "queen"
-      this.color = color
-    }
-}
-
-class Rook {
-    constructor(color) {
-      this.type = "rook"
-      this.color = color
-    }
-}
-
-class Bishop {
-    constructor(color) {
-      this.type = "bishop"
-      this.color = color
-    }
-}
-
-class Knight {
-    constructor(color) {
-      this.type = "knight"
-      this.color = color
-    }
-}
-
-class Pawn {
-    constructor(color) {
-      this.type = "pawn"
-      this.color = color
-    }
-}
-
-const whitePawn = new Pawn("white")
-const whiteKnight = new Knight("white")
-const whiteBishop = new Bishop("white")
-const whiteRook = new Rook("white")
-const whiteQueen = new Queen("white")
-const whiteKing = new King("white")
-
-const blackPawn = new Pawn("black")
-const blackKnight = new Knight("black")
-const blackBishop = new Bishop("black")
-const blackRook = new Rook("black")
-const blackQueen = new Queen("black")
-const blackKing = new King("black")
-
-pieces.whitePawn = whitePawn
-pieces.whiteKnight = whiteKnight
-pieces.whiteBishop = whiteBishop
-pieces.whiteRook = whiteRook
-pieces.whiteQueen = whiteQueen
-pieces.whiteKing = whiteKing
-
-pieces.blackPawn = blackPawn
-pieces.blackKnight = blackKnight
-pieces.blackBishop = blackBishop
-pieces.blackRook = blackRook
-pieces.blackQueen = blackQueen
-pieces.blackKing = blackKing
-
-module.exports = pieces
+module.exports = { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing, blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing }
