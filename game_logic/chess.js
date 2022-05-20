@@ -92,10 +92,11 @@ class Game {
     validatePawnMove(board, move){
         console.log("checking pawn move")
         let pawnMoves
+        const movingPawnColor = move.piece.color
         const [ fromRow, fromCol ] = move.fromSquare 
         const [ toRow, toCol ] = move.toSquare
         
-        if (move.piece.color === "white"){
+        if (movingPawnColor === "white"){
             pawnMoves = {
                 "ForwardOne": [ fromRow + 1, fromCol ],
                 "ForwardTwo": [ fromRow + 2, fromCol ],
@@ -113,9 +114,12 @@ class Game {
     
         const legalMoves = []
 
-        // Rather than deleting pawnMoves, maybe try adding the moves that are legal?
-        // Also need to make sure that kings are not getting exposed or left in check
         for (const move in pawnMoves){
+
+            const moveisLegal = this.isSquareOnBoard(board, pawnMoves[move])
+
+            if (!moveisLegal){ continue }
+
             if (move === "ForwardOne"){
                 const pawnIsBlocked = this.isSquareOccupied(board, pawnMoves["ForwardOne"])
                 if (!pawnIsBlocked){
@@ -130,11 +134,24 @@ class Game {
                     legalMoves.push(pawnMoves["ForwardTwo"])
                 }
             }
+
+            if (move === "CaptureEast" || move === "CaptureWest"){ 
+                let squareHasEnemyPiece
+                const captureSquareHasPiece = this.isSquareOccupied(board, pawnMoves[move])
+                if (captureSquareHasPiece){
+                    if (movingPawnColor !== this.getPiecesColor(board, pawnMoves[move])){
+                        squareHasEnemyPiece = true
+                    }
+                }
+                
+                if (squareHasEnemyPiece){
+                    legalMoves.push(pawnMoves[move])
+                }
+            }
         }
 
         console.log("legal moves", legalMoves)
 
-        //const moveIsLegal = legalMoves.some(move => (move[0] === toRow && move[1] === toCol))
         const moveIsLegal = legalMoves.some(legalMove => (this.squaresAreTheSame(legalMove, move.toSquare)))
         
         console.log("is move legal?", moveIsLegal)
@@ -143,6 +160,14 @@ class Game {
             return true
         } 
         return false
+    }
+
+    getPiecesColor(board, square){
+        const [ col, row ] = square
+        if (board[row][col].piece === null){
+            return undefined
+        }   
+        return board[row][col].piece.color
     }
 
     // validateKnightMove(board, move){
@@ -178,6 +203,14 @@ class Game {
         board[fromRow][fromCol].piece = null
         board[toRow][toCol].piece = movingPiece
         return board
+    }
+
+    isSquareOnBoard(square){
+        const [ col, row ] = square
+        if (col > 7 || col < 0 || row > 7 || row > 0){
+            return false
+        }
+        return true
     }
 
     squaresAreTheSame(square1, square2){
