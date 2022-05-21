@@ -9,16 +9,17 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
 class Game {
     createEmptyBoard(){
         const board = []
-        for (let row = 0; row < 8; row ++){
+        const xAxis = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        for (let y = 1; y <= 8; y ++){
             const boardRow = []
-            for (let col = 0; col < 8; col++){
+            board.push(boardRow)
+            for (let x = 0; x < 8; x++){
                 const square = {
                     piece: null,
-                    coordinate: [row, col]
+                    coordinate: `${xAxis[x]}${y}`
                 }
                 boardRow.push(square)
             }
-            board.push(boardRow)
         }
         return board
     }
@@ -67,14 +68,15 @@ class Game {
 
     // With a given board and move, returns true if legal move, else false
     isMoveLegal(board, move){
-        const movingPiece = this.getPieceAtSquare(board, move.fromSquare)
-
+        const movingPiece = this.getPieceAtSquare(board, move.fromSquare).type
         if (movingPiece === null){
             return false
-        }
-        
+        } 
         if (movingPiece === "pawn"){
-            return this.validatePawnMove(board, move)
+            console.log("moving piece is pawn")
+            const pawnMoves = this.getPawnMoves(board, move.fromSquare)
+            console.log("pawn moves:", pawnMoves)
+            return pawnMoves.some(pawnMove => this.squaresAreTheSame(pawnMove, move.toSquare))
         }
         if (movingPiece === "knight"){
             return this.validateKnightMove(board, move)
@@ -93,11 +95,12 @@ class Game {
         }
     }
 
-    validatePawnMove(board, move){
-        console.log("checking pawn move")
+    getPawnMoves(board, pawnsSquare){
+        console.log("finding pawn moves")
         let pawnMoves
-        const [ fromCol, fromRow ] = move.fromSquare
-        const movingPawnColor = board[fromCol][fromRow].piece.color
+        let pawnStartSquare
+        const [ fromRow, fromCol ] = pawnsSquare
+        const movingPawnColor = board[fromRow][fromCol].piece.color
         
         if (movingPawnColor === "white"){
             pawnMoves = {
@@ -120,7 +123,7 @@ class Game {
         for (const move in pawnMoves){
 
             const moveisLegal = this.isSquareOnBoard(board, pawnMoves[move])
-
+            console.log("is move legal?", moveisLegal)
             if (!moveisLegal){ continue }
 
             if (move === "ForwardOne"){
@@ -152,21 +155,12 @@ class Game {
                 }
             }
         }
-
-        console.log("legal moves", legalMoves)
-
-        const moveIsLegal = legalMoves.some(legalMove => (this.squaresAreTheSame(legalMove, move.toSquare)))
-        
-        console.log("is move legal?", moveIsLegal)
-    
-        if (moveIsLegal){
-            return true
-        } 
-        return false
+        console.log(legalMoves)
+        return legalMoves
     }
 
     getPiecesColor(board, square){
-        const [ col, row ] = square
+        const [ row, col ] = square
         if (board[row][col].piece === null){
             return undefined
         }   
@@ -196,19 +190,20 @@ class Game {
     // Returns updated board if move is legal and original board if not legal
     playMove(board, move){
         if (!this.isMoveLegal(board, move)){
+            console.log("not a legal move")
             return false
         }
         console.log("playing the move", move)
-        const [ fromCol, fromRow ] = move.fromSquare
-        const [ toCol, toRow ] = move.toSquare
-        const movingPiece = board[fromCol][fromRow].piece
-        board[fromCol][fromRow].piece = null
-        board[toCol][toRow].piece = movingPiece
+        const [ fromRow, fromCol ] = move.fromSquare
+        const [ toRow, toCol ] = move.toSquare
+        const movingPiece = board[fromRow][fromCol].piece
+        board[fromRow][fromCol].piece = null
+        board[toRow][toCol].piece = movingPiece
         return board
     }
 
     isSquareOnBoard(square){
-        const [ col, row ] = square
+        const [ row, col ] = square
         if (col > 7 || col < 0 || row > 7 || row > 0){
             return false
         }
@@ -225,19 +220,35 @@ class Game {
     getPieceAtSquare(board, square){
         const [ row, col ] = square
         if (board[row][col].piece === null){
+            console.log("no piece")
             return null
         }
+        console.log("piece is:", board[row][col].piece)
         return board[row][col].piece
+    }
+
+    getSquare(board, coordinates){
+        const xAxis = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        const row = parseInt(coordinates[1]-1)
+        const col = xAxis.indexOf(coordinates[0])
+        if (row)
+        console.log(board[row][col])
+        return board[row][col]
+    }
+
+    placePiece(board, coordinates, piece){
+
     }
 }
 
-const move = {
-    fromSquare: [1, 3],
-    toSquare: [2, 3]
-}
+// Would be nice to have a move be
+// const move = {
+//      from: "e4",
+//      to: "e5"   
+// }
 
 const game = new Game()
 const board = game.createStartPosition()
-game.playMove(board, move)
+game.getSquare(board, "e3")
 
 module.exports = Game

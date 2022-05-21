@@ -62,7 +62,7 @@ test('it can invalidate a pawn capturing a friendly piece', () => {
 })
 
 test('it can invalidate a pawn moving backwards', () => {
-    emptyBoard[3][3].piece = pieces.whitePawn
+    emptyBoard[3][3].piece = whitePawn
     expect(testMove(emptyBoard, {
         fromSquare: [3, 3],
         toSquare: [2, 3]
