@@ -231,13 +231,23 @@ class Game {
         const xAxis = ["a", "b", "c", "d", "e", "f", "g", "h"]
         const row = parseInt(coordinates[1]-1)
         const col = xAxis.indexOf(coordinates[0])
-        if (row)
-        console.log(board[row][col])
         return board[row][col]
     }
 
     placePiece(board, coordinates, piece){
+        const indices = this.coordinatesToIndices(coordinates)
+        const [ row, col ] = indices
+        board[row][col].piece = piece
+        return board
+    }
 
+    coordinatesToIndices(coordinates){
+        // Takes in algebraic notation string and returns [ y, x ] 
+        const xAxis = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        const row = parseInt(coordinates[1]-1)
+        const col = xAxis.indexOf(coordinates[0])
+        console.log(row, col)
+        return [ row, col ]
     }
 }
 
@@ -249,6 +259,6 @@ class Game {
 
 const game = new Game()
 const board = game.createStartPosition()
-game.getSquare(board, "e3")
+const newBoard = game.placePiece(board, "e4", whiteKnight)
 
 module.exports = Game
