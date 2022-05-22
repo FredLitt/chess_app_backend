@@ -1,7 +1,7 @@
 const whitePawn = { type: "pawn", color: "white" }
-const whiteKnight = { type: "pawn", color: "white" }
-const whiteBishop = { type: "pawn", color: "white" }
-const whiteRook = { type: "pawn", color: "white" }
+const whiteKnight = { type: "knight", color: "white" }
+const whiteBishop = { type: "bishop", color: "white" }
+const whiteRook = { type: "rook", color: "white" }
 const whiteQueen = { type: "queen", color: "white" }
 const whiteKing = { type: "king", color: "white" }
 
