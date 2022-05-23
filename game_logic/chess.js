@@ -96,27 +96,20 @@ class Game {
             return false
         }
         const movingPiece = this.getSquare(board, move.from).piece.type
-        console.log("moving piece:", movingPiece)
-
         let legalMoves
         
         if (movingPiece === "pawn"){ legalMoves = this.getPawnMoves(board, move.from) }
         if (movingPiece === "knight"){ legalMoves = this.getKnightMoves(board, move.from) }
         if (movingPiece === "bishop"){ legalMoves = this.getBishopMoves(board, move.from) }
         if (movingPiece === "rook"){ legalMoves = this.getRookMoves(board, move.from) }
-        // if (movingPiece === "queen"){ legalMoves = this.getQueenMoves(board, move.from) }
-        // if (movingPiece === "king"){ legalMoves = this.getKingMoves(board, move.from) }
-        if (move.from === "e2") {console.log("legal moves:", legalMoves)}
+        if (movingPiece === "queen"){ legalMoves = this.getQueenMoves(board, move.from) }
+        if (movingPiece === "king"){ legalMoves = this.getKingMoves(board, move.from) }
         return legalMoves.some(legalMove => this.movesAreTheSame(legalMove, move))
     }
 
     movesAreTheSame(move1, move2){
         if (move1.from === move2.from && move1.to === move2.to){ return true}
         return false
-    }
-
-    getQueenMoves(board, queensSquare){
-        
     }
 
     getRookMoves(board, rooksSquare){
@@ -137,7 +130,6 @@ class Game {
                     continue }
                 
                 const possibleSquare = this.indicesToCoordinates(rookMoves[move])
-                console.log("possible square:", possibleSquare)
                 const squareIsOnBoard = this.isSquareOnBoard(possibleSquare)
                 const squareHasPiece = this.isSquareOccupied(board, possibleSquare)
                 const squareHasFriendlyPiece = (this.getPiecesColor(board, rooksSquare) === this.getPiecesColor(board, possibleSquare))
@@ -156,8 +148,87 @@ class Game {
                 legalMoves.push(this.buildMove(rooksSquare, possibleSquare))
             }
         }
+        return legalMoves
+    }
 
-        console.log(legalMoves)
+    getKingMoves(board, kingsSquare){
+        const [ fromRow, fromCol ] = this.coordinatesToIndices(kingsSquare)
+        const legalMoves = []
+
+        const kingMoves = {
+            "North": [ fromRow - 1, fromCol ],
+            "South": [ fromRow + 1, fromCol ],
+            "West": [ fromRow, fromCol - 1 ],
+            "East": [ fromRow, fromCol + 1 ],
+            "NorthWest": [ fromRow - 1, fromCol -1 ],
+            "NorthEast": [ fromRow - 1, fromCol + 1 ],
+            "SouthWest": [ fromRow + 1, fromCol - 1 ],
+            "SouthEast": [ fromRow + 1, fromCol + 1 ]
+        }
+
+        for (const move in kingMoves){
+
+            const possibleSquare = this.indicesToCoordinates(kingMoves[move])
+            const squareIsOnBoard = this.isSquareOnBoard(possibleSquare)
+            const squareHasPiece = this.isSquareOccupied(board, possibleSquare)
+            const squareHasFriendlyPiece = (this.getPiecesColor(board, kingsSquare) === this.getPiecesColor(board, possibleSquare))
+            // const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare })
+            if (!squareIsOnBoard || squareHasFriendlyPiece){ 
+                continue 
+            }
+            const squareHasEnemyPiece = 
+                (squareHasPiece && this.getPiecesColor(board, kingsSquare) !== this.getPiecesColor(board, possibleSquare))
+            if (squareHasEnemyPiece){
+                legalMoves.push(this.buildMove(kingsSquare, possibleSquare))
+                continue
+            }
+            legalMoves.push(this.buildMove(kingsSquare, possibleSquare))
+        }
+        return legalMoves
+    }
+
+
+    getQueenMoves(board, queensSquare){
+        const [ fromRow, fromCol ] = this.coordinatesToIndices(queensSquare)
+        const legalMoves = []
+        const completedDirections = []
+
+        for (let i = 1; i < 8; i++){
+            const queenMoves = {
+                "North": [ fromRow - i, fromCol ],
+                "South": [ fromRow + i, fromCol ],
+                "West": [ fromRow, fromCol - i ],
+                "East": [ fromRow, fromCol + i ],
+                "NorthWest": [ fromRow - i, fromCol -i ],
+                "NorthEast": [ fromRow - i, fromCol + i ],
+                "SouthWest": [ fromRow + i, fromCol - i ],
+                "SouthEast": [ fromRow + i, fromCol + i ]
+            }
+            for (const move in queenMoves){
+
+                if (completedDirections.includes(move)){ 
+                    continue }
+                
+                const possibleSquare = this.indicesToCoordinates(queenMoves[move])
+                const squareIsOnBoard = this.isSquareOnBoard(possibleSquare)
+                const squareHasPiece = this.isSquareOccupied(board, possibleSquare)
+                const squareHasFriendlyPiece = (this.getPiecesColor(board, queensSquare) === this.getPiecesColor(board, possibleSquare))
+                // const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare })
+                if (!squareIsOnBoard || squareHasFriendlyPiece){ 
+                    completedDirections.push(move)
+                    continue 
+                }
+                const squareHasEnemyPiece = 
+                    (squareHasPiece && this.getPiecesColor(board, queensSquare) !== this.getPiecesColor(board, possibleSquare))
+                if (squareHasEnemyPiece){
+                    legalMoves.push(this.buildMove(queensSquare, possibleSquare))
+                    completedDirections.push(move)
+                    continue
+                }
+                legalMoves.push(this.buildMove(queensSquare, possibleSquare))
+            }
+        }
+
         return legalMoves
     }
 
@@ -179,7 +250,6 @@ class Game {
                     continue }
                 
                 const possibleSquare = this.indicesToCoordinates(bishopMoves[move])
-                console.log("possible square:", possibleSquare)
                 const squareIsOnBoard = this.isSquareOnBoard(possibleSquare)
                 const squareHasPiece = this.isSquareOccupied(board, possibleSquare)
                 const squareHasFriendlyPiece = (this.getPiecesColor(board, bishopsSquare) === this.getPiecesColor(board, possibleSquare))
@@ -198,8 +268,6 @@ class Game {
                 legalMoves.push(this.buildMove(bishopsSquare, possibleSquare))
             }
         }
-
-        console.log(legalMoves)
         return legalMoves
     }
 
@@ -231,7 +299,6 @@ class Game {
     }
 
     getPawnMoves(board, pawnsSquare){
-        console.log("finding pawn moves")
         let pawnsStartingRow
         let pawnMoves
         const [ fromRow, fromCol ] = this.coordinatesToIndices(pawnsSquare)
@@ -303,9 +370,7 @@ class Game {
     }
 
     getPiecesColor(board, square){
-        console.log(square)
         if (!this.isSquareOnBoard(square)){ 
-            console.log("not on board")
             return null }
         if (this.getSquare(board, square).piece === null){ return null }   
         return this.getSquare(board, square).piece.color
@@ -314,12 +379,9 @@ class Game {
     // Returns updated board if move is legal and false if not legal
     playMove(board, move){
         if (!this.isMoveLegal(board, move)){
-            console.log(move, "is not a legal move!")
             return false
         }
-        console.log("playing the move", move)
         const movingPiece = this.getSquare(board, move.from).piece
-        console.log("moving piece:", movingPiece)
         this.getSquare(board, move.from).piece = null
         this.getSquare(board, move.to).piece = movingPiece
         return board
@@ -352,7 +414,6 @@ class Game {
 
     getSquare(board, square){
         if (!this.isSquareOnBoard(square)){
-            console.log(square, "is not a valid square to get")
             return null
         }
         const row = parseInt(square[1])-1
