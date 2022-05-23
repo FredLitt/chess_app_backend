@@ -69,12 +69,14 @@ class Game {
 
     // With a given board and move, returns true if legal move, else false
     isMoveLegal(board, move){
+        const noPieceToMove = this.getSquare(board, move.from).piece === null
+        if (noPieceToMove){
+            console.log("no piece")
+            return false
+        }
         const movingPiece = this.getSquare(board, move.from).piece.type
         console.log("moving piece:", movingPiece)
-        if (movingPiece === null){
-            console.log("no piece on this square")
-            return false
-        } 
+
         let legalMoves
         
         if (movingPiece === "pawn"){ legalMoves = this.getPawnMoves(board, move.from) }
@@ -117,7 +119,8 @@ class Game {
             // const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare })
             if (!squareIsOnBoard || squareHasFriendlyPiece){ 
                 console.log("skipping:", possibleSquare)
-                continue }
+                continue 
+            }
             legalMoves.push(this.buildMove(knightsSquare, possibleSquare))
         }
         return legalMoves
@@ -204,18 +207,12 @@ class Game {
         return this.getSquare(board, square).piece.color
     }
 
-    // Returns updated board if move is legal and original board if not legal
+    // Returns updated board if move is legal and false if not legal
     playMove(board, move){
         if (!this.isMoveLegal(board, move)){
-            console.log("not a legal move")
             return false
         }
         console.log("playing the move", move)
-        // const [ fromRow, fromCol ] = this.coordinatesToIndices(move.from)
-        // const [ toRow, toCol ] = this.coordinatesToIndices(move.to)
-        // const movingPiece = board[fromRow][fromCol].piece
-        // board[fromRow][fromCol].piece = null
-        // board[toRow][toCol].piece = movingPiece
         const movingPiece = this.getSquare(board, move.from).piece
         console.log("moving piece:", movingPiece)
         this.getSquare(board, move.from).piece = null
@@ -226,23 +223,15 @@ class Game {
     isSquareOnBoard(square){
         const invalidFormat = (square.length !== 2 || typeof square !== "string")
         if (invalidFormat){ 
-            console.log("invalid format") 
-            return false }
+            return false 
+        }
         const x = square[0]
         const y = parseInt(square[1])
         const notOnBoard = (!this.xAxis.includes(x) || y > 8 || y < 1)
         if (notOnBoard){
-            console.log("x:", x, "y:", y, "not on board!")
             return false
         }
-        console.log(square, "is valid!")
         return true
-        // const [ row, col ] = this.coordinatesToIndices(square) 
-        // console.log(row, col) 
-        // if (col > 7 || col < 0 || col === undefined || row > 7 || row < 0 || row === undefined){
-        //     return false
-        // }
-        // return true
     }
 
     isKingAttacked(board){
@@ -257,7 +246,12 @@ class Game {
     }
 
     getSquare(board, square){
-        const row = parseInt(square[1]-1)
+        if (!this.isSquareOnBoard(square)){
+            console.log(square, "is not a valid square to get")
+            return null
+        }
+        console.log("square to get:", square)
+        const row = parseInt(square[1])-1
         const col = this.xAxis.indexOf(square[0])
         return board[row][col]
     }
@@ -280,7 +274,10 @@ class Game {
     }
 
     getCapturedPieces(board){
-        let capturedPieces = []
+        let capturedPieces = {
+            white: [],
+            black: []
+        }
         // Loop through all squares and add pieces to array as found
         // Compare with full set and return the difference
         return capturedPieces
@@ -295,7 +292,7 @@ class Game {
         let consoleBoard = ""
         for (let y = 0; y < 8; y++){
             for (let x = 0; x < 8; x++){
-                const pieceLetter = this.getPieceLetter(board[y][x].piece)
+                const pieceLetter = this.getPieceLetter(board[y][x].piece, "console")
                 if (x === 7){
                     consoleBoard += `[${pieceLetter}]\n`
                 } else {
@@ -306,17 +303,19 @@ class Game {
         console.log(consoleBoard)
     }
 
-    getPieceLetter(piece){
+    getPieceLetter(piece, use){
+        // Function is used for getting letters for notation and for printing a console board
+        // If use === "console", then black pieces are turned to lower case
         if (piece === null){ return " " }
         const { type, color } = piece
         let pieceLetter
-        if (type === "pawn"){ pieceLetter = "p"}
-        if (type === "knight"){ pieceLetter = "n"}
-        if (type === "bishop"){ pieceLetter = "b"}
-        if (type === "rook"){ pieceLetter = "r"}
-        if (type === "queen"){ pieceLetter = "q"}
-        if (type === "king"){ pieceLetter = "k"}
-        if (color === "white"){ pieceLetter = pieceLetter.toUpperCase() }
+        if (type === "pawn"){ pieceLetter = "P"}
+        if (type === "knight"){ pieceLetter = "N"}
+        if (type === "bishop"){ pieceLetter = "B"}
+        if (type === "rook"){ pieceLetter = "R"}
+        if (type === "queen"){ pieceLetter = "Q"}
+        if (type === "king"){ pieceLetter = "K"}
+        if (color === "black" && use === "console"){ pieceLetter = pieceLetter.toLowerCase() }
         return pieceLetter
     }
 }
@@ -324,10 +323,5 @@ class Game {
 const game = new Game()
 const board = game.createStartPosition()
 game.printBoard(board)
-// const updatedBoard = game.playMove(board, { from: "g1", to: "e2" })
-// game.printBoard(updatedBoard) 
-// expect: 
-// [ { from: "e2", to: "e3"}, 
-// { from: "e2", to: "e4"} ]
 
 module.exports = Game

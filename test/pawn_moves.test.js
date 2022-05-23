@@ -16,56 +16,56 @@ const testMove = (board, move) => {
 
 // VALID PAWN MOVES
 test('it can validate a pawn moving one square', () => {
-    expect(testMove(game.createStartPosition(), {
-        fromSquare: [1, 3],
-        toSquare: [2, 3]
+    expect(testMove(startingPosition, {
+        from: "e2",
+        to: "e3"
     })).toBe(true)
 })
 
 test('it can validate a pawn moving two squares', () => {
     expect(testMove(startingPosition, {
-        fromSquare: [1, 3],
-        toSquare: [3, 3]
+        from: "e2",
+        to: "e4"
     })).toBe(true)   
 })
 
 test('it can validate a pawn capturing', () => {
-    emptyBoard[1][1].piece = whitePawn
-    emptyBoard[2][2].piece = blackPawn
+    game.placePiece(emptyBoard, "e4", whitePawn)
+    game.placePiece(emptyBoard, "d5", blackPawn)
     expect(testMove(emptyBoard, {
-        fromSquare: [1, 1],
-        toSquare: [2, 2]
+        from: "e4",
+        to: "d5"
     })).toBe(true)
 })
 
-// test('it can validate a pawn capturing en passant', () => {
+// // test('it can validate a pawn capturing en passant', () => {
     
-// })
+// // })
 
 
 // //INVALID PAWN MOVES
 test('it can invalidate a pawn moving three squares', () => {
-    emptyBoard[1][1].piece = whitePawn
+    game.placePiece(emptyBoard, "e2", whitePawn)
     expect(testMove(emptyBoard, {
-        fromSquare: [1, 1],
-        toSquare: [4, 1]
+        from: "e2",
+        to: "e5"
     })).toBe(false)
 })
 
 test('it can invalidate a pawn capturing a friendly piece', () => {
-    emptyBoard[1][1].piece = whitePawn
-    emptyBoard[2][2].piece = whiteKnight
+    game.placePiece(emptyBoard, "e4", whitePawn)
+    game.placePiece(emptyBoard, "d5", whitePawn)
     expect(testMove(emptyBoard, {
-        fromSquare: [1, 1],
-        toSquare: [4, 1]
+        from: "e4",
+        to: "d5"
     })).toBe(false)
 })
 
 test('it can invalidate a pawn moving backwards', () => {
-    emptyBoard[3][3].piece = whitePawn
+    game.placePiece(emptyBoard, "e4", whitePawn)
     expect(testMove(emptyBoard, {
-        fromSquare: [3, 3],
-        toSquare: [2, 3]
+        from: "e4",
+        to: "e2"
     })).toBe(false)
 })
 
