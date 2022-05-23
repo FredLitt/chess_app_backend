@@ -588,9 +588,9 @@ test('it can invalidate a king capturing a friendly piece', () => {
 // test('it can invalidate a king moving into check', () => {
 //     const testBoard = game.createEmptyBoard()
 //     game.placePiece(testBoard, "e4", whiteKing)
-//     game.placePiece(testBoard, "b4", blackRook)
+//     game.placePiece(testBoard, "c5", blackRook)
 //     expect(testMove(testBoard, {
 //         from: "e4",
-//         to: "b4"
+//         to: "e5"
 //     })).toBe(false)
 // })
