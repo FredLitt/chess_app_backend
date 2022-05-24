@@ -67,16 +67,18 @@ class Game {
         return true
     }
 
-    isKingInCheck(board){
-        // let opposingColor
-        // const kingsSquare = this.findKingsSquare(board, kingColor)
-        // if (kingColor === "white") { opposingColor = "black" }
-        // if (kingColor === "black") { opposingColor = "white" }
-        // const attackedSquares = this.findSquaresAttackedBy(board, opposingColor)
-        // const kingIsAttacked = attackedSquares.some(attackedSquare => this.squaresAreTheSame(attackedSquare, kingsSquare))
-        // if (kingIsAttacked){
-        //    return true
-        // }
+    isKingInCheck(board, kingColor){
+        let opposingColor
+        const kingsSquare = this.findKingsSquare(board, kingColor)
+        if (kingColor === "white") { opposingColor = "black" }
+        if (kingColor === "black") { opposingColor = "white" }
+        const attackedSquares = this.findAttackedSquares(board, opposingColor)
+        const kingIsAttacked = attackedSquares.some(attackedSquare => this.squaresAreTheSame(attackedSquare, kingsSquare))
+        if (kingIsAttacked){
+            console.log("king is attacked")
+            return true
+        }
+        console.log("king is not attacked")
         return false
     }
 
@@ -123,32 +125,31 @@ class Game {
         return attackedSquares
     }
 
-    findSquaresForPiece(board, piecesSquare, squaresToGet){
+    findSquaresForPiece(board, piecesSquare, squaresToFind){
         const noPieceToMove = this.getSquare(board, piecesSquare).piece === null
         if (noPieceToMove){ return null }
 
         const movingPiece = this.getSquare(board, piecesSquare).piece.type
         const longRangePiece = movingPiece === "bishop" || movingPiece === "rook" || movingPiece === "queen"
-        console.log(movingPiece)
+
         let squares
         
         if (movingPiece === "pawn"){ 
-            squares = this.findSquaresForPawn(board, piecesSquare, squaresToGet) 
+            squares = this.findSquaresForPawn(board, piecesSquare, squaresToFind) 
         }
         if (movingPiece === "knight"){ 
-            squares = this.findSquaresForKnight(board, piecesSquare, squaresToGet) 
+            squares = this.findSquaresForKnight(board, piecesSquare, squaresToFind) 
         }
         if (movingPiece === "king"){ 
-            squares = this.findSquaresForKing(board, piecesSquare, squaresToGet) 
+            squares = this.findSquaresForKing(board, piecesSquare, squaresToFind) 
         }
         if (longRangePiece){ 
             let directions
             if (movingPiece === "bishop"){ directions = ["NorthEast", "NorthWest", "SouthEast", "SouthWest"] }
             if (movingPiece === "rook"){ directions = ["North", "South", "East", "West"] }
             if (movingPiece === "queen"){ directions = ["North", "South", "East", "West", "NorthEast", "NorthWest", "SouthEast", "SouthWest"] }
-            squares = this.findSquaresForLongRange(board, piecesSquare, squaresToGet, directions) 
+            squares = this.findSquaresForLongRange(board, piecesSquare, squaresToFind, directions) 
         }
-        console.log(squares)
         return squares
     }
 
@@ -416,10 +417,6 @@ class Game {
         return true
     }
 
-    isKingAttacked(board){
-        //return white, black or false
-    }
-
     squaresAreTheSame(square1, square2){
         if (square1 === square2){
             return true
@@ -503,13 +500,12 @@ class Game {
 const game = new Game()
 const board = game.createEmptyBoard()
 
-game.placePiece(board, "e4", blackKing)
+game.placePiece(board, "e4", whiteKing)
 
-game.placePiece(board, "f6", whiteKing)
+game.placePiece(board, "d5", blackPawn)
 
 //game.placePiece(board, "a2", blackRook)
 game.printBoard(board)
-game.findKingsSquare(board, "white")
-game.findKingsSquare(board, "black")
+game.isKingInCheck(board, "white")
 
 module.exports = Game
