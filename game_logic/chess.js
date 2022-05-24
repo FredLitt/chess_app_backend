@@ -116,7 +116,7 @@ class Game {
     //     console.log(movingPiece)
     //     let moves
         
-    //     if (movingPiece === "pawn"){ moves = this.getPawnMoves(board, square) }
+    //     if (movingPiece === "pawn"){ moves = this.findSquaresForPawn(board, square) }
     //     if (movingPiece === "knight"){ moves = this.getKnightMoves(board, square) }
     //     if (movingPiece === "bishop"){ moves = this.getBishopMoves(board, square) }
     //     if (movingPiece === "rook"){ moves = this.getRookMoves(board, square) }
@@ -229,8 +229,8 @@ class Game {
         const noPieceToMove = !this.isSquareOccupied(board, move.from)
         if (noPieceToMove){ return false }
 
-        const legalMoves = this.getSquaresFromPieceAtSquare(board, move.from, "possible moves")
-        return legalMoves.some(legalMove => this.movesAreTheSame(legalMove, move))
+        const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
+        return legalMoves.some(legalMove => legalMove === move.to)
     }
 
     movesAreTheSame(move1, move2){
@@ -262,17 +262,17 @@ class Game {
             const squareHasPiece = this.isSquareOccupied(board, possibleSquare)
             const squareHasFriendlyPiece = this.getPiecesColor(board, kingsSquare) === this.getPiecesColor(board, possibleSquare)
             const squareHasEnemyPiece = squareHasPiece && !squareHasFriendlyPiece
+            const isCastlingLegal = false // this.isCastlingLegal
             // const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare })
             if (squaresToFind === "possible moves"){
                 if (!squareIsOnBoard || squareHasFriendlyPiece){ continue }
                 
                 if (squareHasEnemyPiece){
-                    squares.push(this.buildMove(kingsSquare, possibleSquare))
+                    squares.push(possibleSquare)
                     continue
                 }
-                squares.push(this.buildMove(kingsSquare, possibleSquare))
+                squares.push(possibleSquare)
             }
-
             if (squaresToFind === "controlled squares"){
                 if (!squareIsOnBoard || move.includes("Castle")){ continue }
 
@@ -282,9 +282,9 @@ class Game {
         return squares
     }
 
-    getKnightMoves(board, knightsSquare){
+    findSquaresForKnight(board, knightsSquare, squaresToFind){
         const [ fromRow, fromCol ] = this.coordinatesToIndices(knightsSquare)
-        const legalMoves = []
+        const squares = []
         const knightMoves = {
             "NorthOneEastTwo": [ fromRow - 1, fromCol + 2 ],
             "NorthTwoEastOne": [ fromRow - 2, fromCol + 1 ],
@@ -301,15 +301,22 @@ class Game {
             const squareIsOnBoard = this.isSquareOnBoard(possibleSquare)
             const squareHasFriendlyPiece = (this.getPiecesColor(board, knightsSquare) === this.getPiecesColor(board, possibleSquare))
             // const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare })
-            if (!squareIsOnBoard || squareHasFriendlyPiece){ 
-                continue 
+
+            if (!squareIsOnBoard) { continue }
+
+            if (squaresToFind === "possible moves"){
+                if (squareHasFriendlyPiece){ continue }
+                squares.push(possibleSquare)
             }
-            legalMoves.push(this.buildMove(knightsSquare, possibleSquare))
+
+            if (squaresToFind === "controlled squares"){
+                squares.push(possibleSquare)
+            }
         }
-        return legalMoves
+        return squares
     }
 
-    getPawnMoves(board, pawnsSquare, squaresToFind){
+    findSquaresForPawn(board, pawnsSquare, squaresToFind){
         let pawnsStartingRow
         let pawnMoves
         const [ fromRow, fromCol ] = this.coordinatesToIndices(pawnsSquare)
@@ -342,6 +349,7 @@ class Game {
             if (!squareIsOnBoard){ continue }
 
             if (squaresToFind === "possible moves"){
+                // if (moveWouldExposeKing){ continue }
                 if (move === "ForwardOne"){
                     const pawnIsBlocked = this.isSquareOccupied(board, possibleSquare)
                     if (!pawnIsBlocked){
@@ -370,7 +378,9 @@ class Game {
                 }
             }
             if (squaresToFind === "controlled squares"){
-
+                if (move === "CaptureEast" || move === "CaptureWest"){
+                    squares.push(possibleSquare)
+                }
             }
         }
         return squares
@@ -502,13 +512,13 @@ class Game {
 const game = new Game()
 const board = game.createEmptyBoard()
 
-game.placePiece(board, "h8", whiteBishop)
+game.placePiece(board, "e4", whitePawn)
 
-game.placePiece(board, "f6", blackRook)
+game.placePiece(board, "f6", whiteKing)
 
 //game.placePiece(board, "a2", blackRook)
 game.printBoard(board)
-game.findSquaresForPiece(board, "h8", "controlled squares")
-game.findSquaresForPiece(board, "h8", "possible moves")
+game.findSquaresForPiece(board, "e4", "controlled squares")
+game.findSquaresForPiece(board, "e4", "possible moves")
 
 module.exports = Game
