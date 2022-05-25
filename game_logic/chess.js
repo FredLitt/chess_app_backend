@@ -23,7 +23,6 @@ class Game {
     }
     
     createStartPosition(){
-        const board = this.createEmptyBoard()
         const startingPieces = [
             { piece: whiteRook, squares: ["a1", "h1"] },
             { piece: whiteKnight, squares: ["b1", "g1"] },
@@ -56,14 +55,14 @@ class Game {
                 this.getSquare(board, squaresToPlace).piece = piece
             }
         }
-        console.log(board)
+        this.printBoard(board)
         return board
     }
 
     createBoardFromMoveHistory(moveHistory){
-        const board = this.createStartPosition()
+        let board = this.createStartPosition()
         for (let i = 0; i < moveHistory.length; i++){
-            this.playMove(board, moveHistory[i])
+            board = this.playMove(board, moveHistory[i])
         }
         return board
     }
@@ -80,8 +79,8 @@ class Game {
         if (kingColor === "white") { opposingColor = "black" }
         if (kingColor === "black") { opposingColor = "white" }
         const attackedSquares = this.findAttackedSquares(board, opposingColor)
-        const kingIsAttacked = attackedSquares.some(attackedSquare => this.squaresAreTheSame(attackedSquare, kingsSquare))
-        if (kingIsAttacked){
+        const kingIsInCheck = attackedSquares.some(attackedSquare => this.squaresAreTheSame(attackedSquare, kingsSquare))
+        if (kingIsInCheck){
             console.log("king is attacked")
             return true
         }
@@ -112,20 +111,13 @@ class Game {
     }
 
     doesMoveExposeKing(board, move, kingColor){
-        const testBoard = this.testMove(board, move)
-        this.printBoard(testBoard)
-        if (this.isKingInCheck(testBoard, kingColor)){
-            console.log("after move:", move, "king is in check:", this.isKingInCheck(testBoard, kingColor))
-            return true
-        }
-        return false
-    }
-
-    testMove(board, move){
-        const movingPiece = this.getSquare(board, move.from).piece
-        this.getSquare(board, move.from).piece = null
-        this.getSquare(board, move.to).piece = movingPiece
-        return board
+        const testBoard = this.playMove(board, move, "test")
+        // this.printBoard(testBoard)
+        // if (this.isKingInCheck(testBoard, kingColor)){
+        //     console.log("after move:", move, "king is in check:", this.isKingInCheck(testBoard, kingColor))
+        //     return true
+        // }
+        // return false
     }
 
     findAttackedSquares(board, attackingColor){
@@ -393,8 +385,8 @@ class Game {
     isMoveLegal(board, move){
         console.log("checking legality of:", move)
         const noPieceToMove = !this.isSquareOccupied(board, move.from)
-        if (noPieceToMove){ 
-            console.log("no piece to move")
+        if (noPieceToMove || !this.isSquareOnBoard(board, move.to)){ 
+            console.log("invalid move!")
             return false }
         const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
         console.log("legal moves:", legalMoves)
@@ -421,12 +413,13 @@ class Game {
     }
 
     // Returns updated board if move is legal and false if not legal does not add to history if test move
-    playMove(board, move){
+    playMove(board, move, moveType){
         if (!this.isMoveLegal(board, move)){ return console.log("inputted move is not legal") }
-
         const movingPiece = this.getSquare(board, move.from).piece
         this.getSquare(board, move.from).piece = null
         this.getSquare(board, move.to).piece = movingPiece
+        if (moveType === "test"){ return board}
+
         this.moveHistory.push(move)
         console.log("after playing move:", move, "here's the board:")
         this.printBoard(board)
@@ -524,45 +517,35 @@ class Game {
 
 const game = new Game()
 
-const start = game.createStartPosition()
-game.printBoard(start)
-// game.placePiece(board, "e5", whiteBishop)
-// game.placePiece(board, "e7", blackRook)
-// game.printBoard(board)
-// const newBoard = game.playMove(board, { from: "e5", to: "d5" })
-// game.printBoard(newBoard)
-//game.placePiece(board, "a2", blackRook)
-
-// const moveHistory = [
-//     { 
-//         from: "e2",
-//         to: "e4"
-//     },
-//     { 
-//         from: "e7",
-//         to: "e5"
-//     },
-//     { 
-//         from: "g1",
-//         to: "f3"
-//     },
-//     { 
-//         from: "g8",
-//         to: "c6"
-//     },
-//     { 
-//         from: "f1",
-//         to: "c4"
-//     },
-//     { 
-//         from: "g8",
-//         to: "f6"
-//     }
-// ]
-
-//console.log(game.getSan(move))
-//console.log(game.createSanMoveList(moveHistory))
-//const updatedBoard = game.createBoardFromMoveHistory(moveHistory)
-//game.printBoard(updatedBoard)
+// const start = game.createStartPosition()
+// game.printBoard(start)
+const moveHistory = [
+    { 
+        from: "e2",
+        to: "e4"
+    },
+    { 
+        from: "e7",
+        to: "e5"
+    }
+    // { 
+    //     from: "g1",
+    //     to: "f3"
+    // },
+    // { 
+    //     from: "g8",
+    //     to: "c6"
+    // },
+    // { 
+    //     from: "f1",
+    //     to: "c4"
+    // },
+    // { 
+    //     from: "g8",
+    //     to: "f6"
+    // }
+]
+const board = game.createStartPosition()
+game.findAttackedSquares(board, "white")
 
 module.exports = Game
