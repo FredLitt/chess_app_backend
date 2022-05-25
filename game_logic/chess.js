@@ -221,8 +221,13 @@ class Game {
                 }
 
                 if (squaresToFind === "possible moves") {
-                    const invalidMove = !squareIsOnBoard || squareHasFriendlyPiece || this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)
+                    const invalidMove = !squareIsOnBoard || squareHasFriendlyPiece
                     if (invalidMove) {
+                        completedDirections.push(direction) 
+                        continue
+                    }
+
+                    if (this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)){
                         completedDirections.push(direction) 
                         continue
                     }
@@ -486,13 +491,8 @@ class Game {
         return false
     }
 
-    buildMove(board, fromSquare, toSquare, options){
-        // Options includes: promotion, enPassant, check, checkmate
-        const piece = this.getSquare(board, fromSquare).piece.type
-        if (options) { 
-            return { piece: piece, from: fromSquare, to: toSquare, otherData: options } 
-        }
-        return { piece: piece, from: fromSquare, to: toSquare }
+    buildMove(piece, move){
+        return { piece: piece.type, from: move.from, to: move.to, otherData: move.otherData } 
     }
 
     getPiecesColor(board, square){
@@ -529,15 +529,19 @@ class Game {
         }
         // if (this.wasCastle())
         // if (this.wasEnPassant())
-        const movingPiece = this.getSquare(board, move.from).piece
+        let movingPiece = this.getSquare(board, move.from).piece
+        if (move.otherData.promotion){
+            const promotingPawnColor = this.getPiecesColor(board, move.from)
+            movingPiece = { type: move.otherData.promotion, color: promotingPawnColor, formerPawn: true }
+        }
         this.getSquare(board, move.from).piece = null
         this.getSquare(board, move.to).piece = movingPiece
-        this.printBoard("after move:", board)
 
         if (moveType === "test"){ return board }
-        // const options = {}
-        // const fullMove = this.buildMove(movingPiece, move, options)
-        this.moveHistory.push(move)
+
+        
+        const fullMove = this.buildMove(movingPiece, move)
+        this.moveHistory.push(fullMove)
         return board
     }
 
@@ -632,8 +636,8 @@ class Game {
 
 const game = new Game()
 
-const board = game.placePieces([{piece: whiteRook, squares: "a2"}])
-const promotion = game.playMove(board, { from: "a2", to: "a1"})
+const board = game.placePieces([{piece: blackPawn, squares: "a2"}])
+const promotion = game.playMove(board, { from: "a2", to: "a1", otherData: {promotion: "queen"}})
 game.printBoard(promotion)
 
 //game.isKingInCheck(board, "white")
