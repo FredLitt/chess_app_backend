@@ -59,14 +59,6 @@ class Game {
         return board
     }
 
-    createBoardFromMoveHistory(moveHistory){
-        let board = this.createStartPosition()
-        for (let i = 0; i < moveHistory.length; i++){
-            board = this.playMove(board, moveHistory[i])
-        }
-        return board
-    }
-
     isSquareOccupied(board, square){
         if (!this.isSquareOnBoard(square)){ return false }
         if (this.getSquare(board, square).piece === null){ return false }
@@ -79,12 +71,11 @@ class Game {
         if (!kingsSquare){ return false }
         if (kingColor === "white") { opposingColor = "black" }
         if (kingColor === "black") { opposingColor = "white" }
-        const attackedSquares = this.findAttackedSquares(board, opposingColor)
-        const kingIsInCheck = attackedSquares.some(attackedSquare => this.squaresAreTheSame(attackedSquare, kingsSquare))
+        const attackedSquares = []//this.findAttackedSquares(board, opposingColor)
+        const kingIsInCheck = false // attackedSquares.some(attackedSquare => attackedSquare === kingsSquare)
         if (kingIsInCheck){
             return true
         }
-        console.log("king is not in check")
         return false
     }
 
@@ -118,13 +109,11 @@ class Game {
         if (!this.isMoveValid(board, move)){
             return false
         }
-        console.log("does move expose king? Checking move:", move, "from square:", this.getSquare(board, move.from))
         const movingPieceStartSquare = this.getSquare(board, move.from)
         const movingPiece = movingPieceStartSquare.piece
         const targetSquare = this.getSquare(board, move.to)
         movingPieceStartSquare.piece = null
         targetSquare.piece = movingPiece
-        this.printBoard(board)
         const kingWouldBeInCheck = this.isKingInCheck(board, kingColor)
         // Change board back
         movingPieceStartSquare.piece = movingPiece
@@ -146,7 +135,6 @@ class Game {
                 }
             }
         }
-
         attackingPiecesSquares.forEach(square => attackedSquares.push(this.findSquaresForPiece(board, square, "controlled squares")))
         attackedSquares = attackedSquares.flat()
         return attackedSquares
@@ -226,15 +214,17 @@ class Game {
                         completedDirections.push(direction) 
                         continue
                     }
-
-                    if (this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)){
+                    
+                    const moveExposesKing = this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)
+                    
+                    if (moveExposesKing){
                         completedDirections.push(direction) 
                         continue
                     }
 
                     if (squareHasEnemyPiece) {
                         completedDirections.push(direction)
-                        if (!this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)) {
+                        if (!moveExposesKing) {
                             squares.push(possibleSquare)
                             continue
                         }
@@ -271,12 +261,13 @@ class Game {
         return unsafeSquares.some(unsafeSquare => castlingSquares.includes(unsafeSquare))
     }
 
-    hasKingMoved(kingColor){
+    hasKingMoved(board, kingColor){
         let kingStartSquare
-        if (kingColor === "white"){ kingStartSquare === "e1" }
-        if (kingColor === "black"){ kingStartSquare === "e8" }
+        if (kingColor === "white"){ kingStartSquare = "e1" }
+        if (kingColor === "black"){ kingStartSquare = "e8" }
         const kingNotOnStartSquare = this.findKingsSquare(board, kingColor) !== kingStartSquare
         if (kingNotOnStartSquare){
+            console.log("king not on start square:", kingStartSquare)
             return true
         }
         const moveHistoryFromSquares = this.moveHistory.map(move => move.from)
@@ -287,18 +278,19 @@ class Game {
         return false
     }
 
-    hasCastlingRookMoved(color, castlingDirection){
+    hasCastlingRookMoved(board, color, castlingDirection){
         let rookStartSquare
         if (color === "white"){ 
-            if (castlingDirection.includes("Kingside")){ rookStartSquare === "h1" }
-            if (castlingDirection.includes("Queenside")){ rookStartSquare === "a1" }
+            if (castlingDirection.includes("Kingside")){ rookStartSquare = "h1" }
+            if (castlingDirection.includes("Queenside")){ rookStartSquare = "a1" }
         }
         if (color === "black"){ 
-            if (castlingDirection.includes("Kingside")){ rookStartSquare === "h8" }
-            if (castlingDirection.includes("Queenside")){ rookStartSquare === "a8" }
+            if (castlingDirection.includes("Kingside")){ rookStartSquare = "h8" }
+            if (castlingDirection.includes("Queenside")){ rookStartSquare = "a8" }
         }
         const moveHistoryFromSquares = this.moveHistory.map(move => move.from)
-        if (moveHistoryFromSquares.includes(rookStartSquare)){
+        const noRookOnSquare = this.getSquare(board, rookStartSquare).piece === null || this.getSquare(board, rookStartSquare).piece.type !== "rook"
+        if (moveHistoryFromSquares.includes(rookStartSquare) || noRookOnSquare){
             return true
         }
         return false
@@ -307,8 +299,8 @@ class Game {
     isCastlingLegal(board, kingColor, castlingDirection){
         const castlingSquaresAreControlled = this.areCastlingSquaresControlled(board, kingColor, castlingDirection)
         const kingIsInCheck = this.isKingInCheck(board, kingColor)
-        const kingHasMoved = this.hasKingMoved(kingColor)
-        const rookHasMoved = this.hasCastlingRookMoved(kingColor, castlingDirection)
+        const kingHasMoved = this.hasKingMoved(board, kingColor)
+        const rookHasMoved = this.hasCastlingRookMoved(board, kingColor, castlingDirection)
         if (castlingSquaresAreControlled || kingIsInCheck || kingHasMoved || rookHasMoved){
             return false
         }
@@ -328,8 +320,8 @@ class Game {
             "NorthEast": [ fromRow - 1, fromCol + 1 ],
             "SouthWest": [ fromRow + 1, fromCol - 1 ],
             "SouthEast": [ fromRow + 1, fromCol + 1 ],
-            "Castle Kingside": [fromRow, fromCol - 2],
-            "Castle Queenside": [fromRow, fromCol + 2]
+            "Castle Kingside": [fromRow, fromCol + 2],
+            "Castle Queenside": [fromRow, fromCol - 2]
         }
 
         for (const move in kingMoves){
@@ -340,19 +332,24 @@ class Game {
             const squareHasPiece = this.isSquareOccupied(board, possibleSquare)
             const squareHasFriendlyPiece = this.getPiecesColor(board, kingsSquare) === this.getPiecesColor(board, possibleSquare)
             const squareHasEnemyPiece = squareHasPiece && !squareHasFriendlyPiece
-            const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: kingsSquare, to: possibleSquare }, kingColor)
             
             if (squaresToFind === "possible moves"){
-                if (!squareIsOnBoard || squareHasFriendlyPiece || moveWouldExposeKing){ continue }
+                if (!squareIsOnBoard || squareHasFriendlyPiece){ continue }
                 
                 if (squareHasEnemyPiece){
-                    squares.push(possibleSquare)
+                    const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: kingsSquare, to: possibleSquare }, kingColor)
+                    if (!moveWouldExposeKing){
+                        squares.push(possibleSquare)
+                        continue
+                    }
                     continue
                 }
 
                 if (move.includes("Castle")){
-                    if (this.isCastlingLegal(board, kingColor, move)){
-                        squares.push(possibleSquare)
+                    console.log("CASTLING MOVE", move, possibleSquare)
+                    if (!this.isCastlingLegal(board, kingColor, move)){
+                        console.log(move, "not legal")
+                        continue
                     }
                 }
 
@@ -403,6 +400,7 @@ class Game {
     }
 
     findSquaresForPawn(board, pawnsSquare, squaresToFind){
+        console.log("finding squares for pawn on:", pawnsSquare)
         let pawnsStartingRow
         let pawnMoves
         const [ fromRow, fromCol ] = this.coordinatesToIndices(pawnsSquare)
@@ -429,55 +427,51 @@ class Game {
 
         for (const move in pawnMoves){
             const possibleSquare = this.indicesToCoordinates(pawnMoves[move])
-            const pawnsColor = this.getPiecesColor(board, pawnsSquare)
             const squareIsOnBoard = this.isSquareOnBoard(possibleSquare)
-            const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare }, pawnsColor)
-
+            
             if (!squareIsOnBoard){ 
-                console.log(possibleSquare, "is not on board")
                 continue 
             }
 
             if (squaresToFind === "possible moves"){
-                if (moveWouldExposeKing){ continue }
+                console.log("finding possible moves...")
                 if (move === "ForwardOne"){
                     const pawnIsBlocked = this.isSquareOccupied(board, possibleSquare)
-                    console.log("forward one, is pawn blocked?", pawnIsBlocked)
                     if (pawnIsBlocked){
-                        console.log("forward one, pawn blocked!")
                         continue
                     }
                 }
+
                 if (move === "ForwardTwo"){
                     const pawnIsBlocked = 
                         this.isSquareOccupied(board, this.indicesToCoordinates(pawnMoves["ForwardOne"])) || this.isSquareOccupied(board, possibleSquare)
                     const pawnHasMoved = pawnsStartingRow !== fromRow
-                    if (pawnIsBlocked || pawnHasMoved){
+                    if (pawnIsBlocked && pawnHasMoved){
                         continue
                     }
-                }
-                if (move === "CaptureEast" || move === "CaptureWest"){ 
-                    const captureSquareHasEnemyPiece = (this.getPiecesColor(board, possibleSquare) !== null && this.getPiecesColor(board, possibleSquare) !== movingPawnColor)
-                    // const enPassantIsLegal = this.isEnPassantLegal()
-                    // if (captureSquareHasPiece){
-                    //     if (movingPawnColor !== this.getPiecesColor(board, moveCoordinates)){
-                    //         squareHasEnemyPiece = true
-                    //     }
-                    // }
-                    if (!captureSquareHasEnemyPiece){
-                        continue
-                    }
-                }
-                if (this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare }, pawnsColor)){
-                    console.log("move exposes king")
-                    continue
                 }
 
+                if (move === "CaptureEast" || move === "CaptureWest"){ 
+                    const captureSquareHasEnemyPiece = (this.getPiecesColor(board, possibleSquare) !== null && this.getPiecesColor(board, possibleSquare) !== movingPawnColor)
+                    const enPassantIsLegal = this.isEnPassantLegal(board, pawnsSquare, movingPawnColor)
+                    console.log("can en passant?", enPassantIsLegal)
+                    if (!captureSquareHasEnemyPiece && !enPassantIsLegal){
+                        continue
+                    }
+                    
+                }
+                // const moveWouldExposeKing = this.doesMoveExposeKing(board, { from: pawnsSquare, to: possibleSquare }, pawnsColor)
+                // if (moveWouldExposeKing) { 
+                //     console.log("move exposes king")
+                //     continue 
+                // }
+                console.log("adding move:", possibleSquare)
                 squares.push(possibleSquare)
             }
+
             if (squaresToFind === "controlled squares"){
-                if (move === "CaptureEast" || move === "CaptureWest"){
-                    squares.push(possibleSquare)
+                if (!move === "CaptureEast" || !move === "CaptureWest"){
+                    continue
                 }
             }
         }
@@ -492,7 +486,12 @@ class Game {
     }
 
     buildMove(piece, move){
-        return { piece: piece.type, from: move.from, to: move.to, otherData: move.otherData } 
+        return { 
+            piece: { type: piece.type, color: piece.color }, 
+            from: move.from, 
+            to: move.to, 
+            data: move.data 
+        } 
     }
 
     getPiecesColor(board, square){
@@ -503,6 +502,106 @@ class Game {
             return null 
         }   
         return this.getSquare(board, square).piece.color
+    }
+
+    isEnPassantLegal(board, pawnsSquare, movingPawnColor){
+        console.log("checking en passant legality for pawn on:", pawnsSquare, "with color:", movingPawnColor)
+        const lastMove = this.moveHistory[this.moveHistory.length - 1]
+        const lastMoveWasPawn = lastMove?.piece.type === "pawn"
+        if (!lastMoveWasPawn){ return false }
+        let enPassantRow
+        if (movingPawnColor === "white"){ enPassantRow = 5 }
+        if (movingPawnColor === "black"){ enPassantRow = 4 }
+        const pawnMovedTwo = Math.abs(lastMove?.from[1] - lastMove.to[1]) === 2
+        const capturingPawnOnEnPassantRow = parseInt(pawnsSquare[1]) === enPassantRow
+        const pawnLandedOnAdjacentSquare = Math.abs(this.xAxis.indexOf(lastMove?.to[0]) - this.xAxis.indexOf(pawnsSquare[0])) === 1
+        if (pawnMovedTwo && capturingPawnOnEnPassantRow && pawnLandedOnAdjacentSquare){
+            return true
+        }
+        return false
+    }
+
+    moveWasEnPassant(board, move){
+        const pawnMove = this.getSquare(board, move.from).piece.type === "pawn"
+        const wasCapture = move.from[0] !== move.to[0]
+        const noPieceOnCaptureSquare = this.getSquare(board, move.to).piece === null
+        if (pawnMove && wasCapture && noPieceOnCaptureSquare){
+            console.log("en passant!")
+            return true
+        }
+        return false
+    }
+
+    getEnPassantTarget(){
+        const lastMove = this.moveHistory[this.moveHistory.length - 1]
+        const pawnToCapturesSquare = lastMove?.to
+        return pawnToCapturesSquare
+    }
+
+    moveWasCastling(board, move){
+        const kingMove = this.getSquare(board, move.from).piece.type === "king"
+        if (!kingMove) {
+            return false
+        }
+        const kingColor = this.getPiecesColor(board, move.from)
+        let startSquare
+        let kingsideEndSquare
+        let queensideEndSquare
+        if (kingColor === "white"){
+            startSquare = "e1"
+            kingsideEndSquare = "g1"
+            queensideEndSquare = "c1"
+        }
+
+        if (kingColor === "black"){
+            startSquare = "e8"
+            kingsideEndSquare = "g8"
+            queensideEndSquare = "c8"
+        }
+        const kingOnStartSquare = move.from === startSquare
+        const kingWentKingside = move.to === kingsideEndSquare
+        const kingWentQueenside = move.to === queensideEndSquare
+        if (kingOnStartSquare && kingWentKingside){ return "Kingside" }
+        if (kingOnStartSquare && kingWentQueenside){ return "Queenside" }
+        return false
+    }
+
+    castle(board, direction, color){
+        let rookSquares = {}
+        let kingSquares = {}
+        if (color === "white"){
+            kingSquares.start = "e1"
+            if (direction === "Kingside"){
+                kingSquares.end = "g1"
+                rookSquares.start = "h1"
+                rookSquares.end = "f1"
+            }
+            if (direction === "Queenside"){
+                kingSquares.end = "c1"
+                rookSquares.start = "a1"
+                rookSquares.end = "d1"
+            }
+        }
+        if (color === "black"){
+            kingSquares.start = "e8"
+            if (direction === "Kingside"){
+                kingSquares.end = "g8"
+                rookSquares.start = "h8"
+                rookSquares.end = "f8"
+            }
+            if (direction === "Queenside"){
+                kingSquares.end = "c8"
+                rookSquares.start = "a8"
+                rookSquares.end = "d8"
+            }
+        }
+        const king = this.getSquare(board, kingSquares.start).piece
+        const rook = this.getSquare(board, rookSquares.start).piece
+        console.log(rook)
+        this.getSquare(board, kingSquares.start).piece = null
+        this.getSquare(board, kingSquares.end).piece = king
+        this.getSquare(board, rookSquares.start).piece = null
+        this.getSquare(board, rookSquares.end).piece = rook
     }
 
     isMoveValid(board, move){
@@ -520,27 +619,38 @@ class Game {
             console.log("invalid move entry")
             return board
         }
+        console.log(move)
         const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
+        console.log(legalMoves)
         const moveIsLegal = legalMoves.some(legalMove => legalMove === move.to)
-        console.log("legal moves:", legalMoves, "desired move:", move.to)
-        console.log("move:", move.to, "is move legal?", moveIsLegal)
         if (!moveIsLegal){
             return board
         }
-        // if (this.wasCastle())
-        // if (this.wasEnPassant())
+        
+        move.data = {}
         let movingPiece = this.getSquare(board, move.from).piece
-        if (move.otherData.promotion){
-            const promotingPawnColor = this.getPiecesColor(board, move.from)
-            movingPiece = { type: move.otherData.promotion, color: promotingPawnColor, formerPawn: true }
+        if (this.moveWasCastling(board, move)){
+            const direction = this.moveWasCastling(board, move)
+            const color = this.getPiecesColor(board, move.from)
+            console.log("move was castling!", direction, "by color:", color)
+            this.castle(board, direction, color)
         }
+        if (this.moveWasEnPassant(board, move)){
+            move.data.enPassant = true
+            const pawnToCapturesSquare = this.getEnPassantTarget()
+            this.getSquare(board, pawnToCapturesSquare).piece = null
+        }
+        // if (move.moveData.hasOwnProperty("promotion")){
+        //     const promotingPawnColor = this.getPiecesColor(board, move.from)
+        //     movingPiece = { type: move.moveData.promotion, color: promotingPawnColor, formerPawn: true }
+        // }
         this.getSquare(board, move.from).piece = null
         this.getSquare(board, move.to).piece = movingPiece
 
         if (moveType === "test"){ return board }
-
         
         const fullMove = this.buildMove(movingPiece, move)
+        console.log(fullMove)
         this.moveHistory.push(fullMove)
         return board
     }
@@ -599,6 +709,9 @@ class Game {
 
     getSan(move){
         let san
+        console.log(move)
+        const pieceAbbreviation = this.getPieceLetter(move.piece)
+        console.log(pieceAbbreviation)
         return san
     }
 
@@ -632,40 +745,40 @@ class Game {
         if (color === "black" && use === "console"){ pieceLetter = pieceLetter.toLowerCase() }
         return pieceLetter
     }
+
+    createBoardFromMoveHistory(moveHistory){
+        let board = this.createStartPosition()
+        for (let i = 0; i < moveHistory.length; i++){
+            board = this.playMove(board, moveHistory[i])
+        }
+        return board
+    }
 }
 
 const game = new Game()
 
-const board = game.placePieces([{piece: blackPawn, squares: "a2"}])
-const promotion = game.playMove(board, { from: "a2", to: "a1", otherData: {promotion: "queen"}})
-game.printBoard(promotion)
+const enPassantTest = [
+    { 
+        from: "e2",
+        to: "e4"
+    },
+    { 
+        from: "e7",
+        to: "e6"
+    },
+    { 
+        from: "e4",
+        to: "e5"
+    },
+    { 
+        from: "d7",
+        to: "d5"
+    }
+]
 
-//game.isKingInCheck(board, "white")
-// const moveHistory = [
-//     { 
-//         from: "e2",
-//         to: "e4"
-//     },
-//     { 
-//         from: "e7",
-//         to: "e5"
-//     }
-    // { 
-    //     from: "g1",
-    //     to: "f3"
-    // },
-    // { 
-    //     from: "g8",
-    //     to: "c6"
-    // },
-    // { 
-    //     from: "f1",
-    //     to: "c4"
-    // },
-    // { 
-    //     from: "g8",
-    //     to: "f6"
-    // }
-// ]
+const board = game.createBoardFromMoveHistory(enPassantTest)
+game.printBoard(board)
+const enPassant = game.playMove(board, { from: "e5", to: "d6"})
+game.printBoard(enPassant)
 
 module.exports = Game
