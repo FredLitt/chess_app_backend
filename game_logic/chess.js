@@ -473,7 +473,7 @@ class Game {
                     const pawnIsBlocked = 
                         this.isSquareOccupied(board, this.indicesToCoordinates(pawnMoves["ForwardOne"])) || this.isSquareOccupied(board, possibleSquare)
                     const pawnHasMoved = pawnsStartingRow !== fromRow
-                    if (pawnIsBlocked && pawnHasMoved){
+                    if (pawnIsBlocked || pawnHasMoved){
                         continue
                     }
                 }
@@ -892,6 +892,6 @@ const board = game.createBoardFromMoveHistory([
         }
     }
 ])
-game.getMoveNotation()
-game.printBoard(board)
+const moves = game.findAllPossibleMoves(board, "black")
+console.log(moves)
 module.exports = Game
