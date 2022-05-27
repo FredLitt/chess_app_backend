@@ -6,6 +6,6 @@ content-type: application/json
         "pieceType": "pawn",
         "color": "black"
     },
-    "fromSquare": [7, 7],
-    "toSquare": [7, 5]
+    "from": "e7",
+    "to": "e5"
 }

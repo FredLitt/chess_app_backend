@@ -1,15 +1,17 @@
-const whitePawn = { type: "pawn", color: "white" }
-const whiteKnight = { type: "knight", color: "white" }
-const whiteBishop = { type: "bishop", color: "white" }
-const whiteRook = { type: "rook", color: "white" }
-const whiteQueen = { type: "queen", color: "white" }
-const whiteKing = { type: "king", color: "white" }
+const pieces = {
+    whitePawn: { type: "pawn", color: "white" },
+    whiteKnight: { type: "knight", color: "white" },
+    whiteBishop: { type: "bishop", color: "white" },
+    whiteRook: { type: "rook", color: "white" },
+    whiteQueen: { type: "queen", color: "white" },
+    whiteKing: { type: "king", color: "white" },
 
-const blackPawn = { type: "pawn", color: "black" }
-const blackKnight = { type: "knight", color: "black" }
-const blackBishop = { type: "bishop", color: "black" }
-const blackRook = { type: "rook", color: "black" }
-const blackQueen = { type: "queen", color: "black" }
-const blackKing = { type: "king", color: "black" }
+    blackPawn: { type: "pawn", color: "black" },
+    blackKnight: { type: "knight", color: "black" },
+    blackBishop: { type: "bishop", color: "black" },
+    blackRook: { type: "rook", color: "black" },
+    blackQueen: { type: "queen", color: "black" },
+    blackKing: { type: "king", color: "black" }
+}
 
-module.exports = { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing, blackPawn, blackKnight, blackBishop, blackRook, blackQueen, blackKing }
+module.exports = pieces

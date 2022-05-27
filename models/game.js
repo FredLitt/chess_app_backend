@@ -37,22 +37,22 @@ const moveSchema = new mongoose.Schema({
     }
   },
 
-  fromSquare: {
-    type: Array,
+  from: {
+    type: String,
     required: true,
       validate: {
       validator: function(x){
-        return /[0-7],[0-7]/.test(x)
+        return /[a-h][1-8]/.test(x)
       },
     },
   },
 
-  toSquare: {
-    type: Array,
+  to: {
+    type: String,
     required: true,
       validate: {
       validator: function(x){
-        return /[0-7],[0-7]/.test(x)
+        return /[a-h][1-8]/.test(x)
       },
     },
   },

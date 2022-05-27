@@ -414,9 +414,7 @@ class Game {
             if (squaresToFind === "possible moves"){
                 if (squareHasFriendlyPiece){ continue }
                 const moveExposesKing = this.doesMoveExposeKing(board, { from: knightsSquare, to: possibleSquare }, knightsColor)
-                if (moveExposesKing){
-                    continue
-                }
+                if (moveExposesKing){ continue }
                 squares.push(possibleSquare)
             }
 
