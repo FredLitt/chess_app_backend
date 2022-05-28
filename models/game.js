@@ -15,7 +15,7 @@ mongoose.connect(url)
 const moveSchema = new mongoose.Schema({
 
   piece: {
-    pieceType: {
+    type: {
       type: String,
       required: true,
       validate: {

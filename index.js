@@ -4,6 +4,7 @@ const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
 const { Game } = require('./models/game')
+const Chess = require('./game_logic/chess')
 
 app.use(express.static('build'))
 app.use(express.json())
@@ -25,17 +26,40 @@ app.post('/api/games', (request, response, next) => {
 })
 
 app.post('/api/games/:id/moves', (request, response, next) => {
-  const move = request.body
-
-  Game.findByIdAndUpdate(
-    request.params.id, 
-    { $push: { moveHistory: move }},
-    { new: true, runValidators: true })
-      .then(updatedGame => {
-        console.log(updatedGame)
-        response.json(updatedGame)
+  const move = {
+    piece: request.body.piece,
+    from: request.body.from,
+    to: request.body.to
+  }
+  const chess = new Chess()
+  
+  Game.findById(request.params.id)
+    .then(game => {
+      console.log("move history:", game)
+      const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
+      chess.printBoard(currentBoard)
+      const isLegalMove = chess.playMove(currentBoard, move) !== false
+      console.log("is legal move?", isLegalMove)
+      if (isLegalMove){
+        console.log("playing move:", move)
+        Game.findByIdAndUpdate(
+          request.params.id, 
+          { $push: { moveHistory: move }},
+          { new: true, runValidators: true })
+            .then(updatedGame => {
+              console.log("move history", updatedGame.moveHistory)
+              response.json(updatedGame)
+            })
+            .catch(error => next(error))
+        } else {
+          console.log("invalid move inputted")
+        }
       })
-      .catch(error => next(error))
+  
+  //const board = chess.createBoardFromMoveHistory(game.moveHistory)
+  // if move is valid then run...
+
+  
 })
 
 app.delete('/api/games/:id', (request, response, next) => {

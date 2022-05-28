@@ -9,7 +9,7 @@ TODO LIST
 - [x] Create POST request for playing a move (without validation)
   - [x] Add a hardcoded string to the end of the move history
   - [x] Validate POST regEx to only allow real pieces
-  - [ ] Validate POST regex to only allow valid square coordinates (REWRITE WITH ALGEBRAIC)
+  - [x] Validate POST regex to only allow valid square coordinates
   - [x] Actually add a real move w/ a proper schema
   - [x] Fix bug: response doesn't contain updated game, contains the last one??
   - [x] (Optional) Make all move fields required. If you send a request that's missing a piece, it should error.
