@@ -14,32 +14,30 @@ morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(
   ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
   
-app.post('/api/games', (request, response, next) => {
+app.post('/api/games', async (request, response, next) => {
   const game = new Game({
       moveHistory: []
   })
-
-  game.save().then(savedGame => {
+  try {
+    const savedGame = await game.save()
     response.json(savedGame)
-  })
-  .catch(error => next(error))
+  } catch (error) {
+    console.log("Unable to create game")
+    next(error)
+  }
 })
 
-app.get('/api/games/:id/moves', (request, response, next) => {
-  console.log("Getting game")
-  Game.findById(request.params.id)
-    .then(game => {
-      if (game) {
-        response.json(game)
-      } else {
-        console.log("fail")
-        response.status(404).end()
-      }
-    })
-    .catch(error => next(error))
+app.get('/api/games/:id/moves', async (request, response, next) => {
+  try {
+    const game = await Game.findById(request.params.id)
+    response.json(game)
+  } catch (error) {
+    console.log("Unable to get game")
+    next(error)
+  }
 })
 
-app.post('/api/games/:id/moves', (request, response, next) => {
+app.post('/api/games/:id/moves', async (request, response, next) => {
   const move = {
     piece: request.body.piece,
     from: request.body.from,
@@ -47,52 +45,52 @@ app.post('/api/games/:id/moves', (request, response, next) => {
   }
 
   const chess = new Chess()
-  
-  Game.findById(request.params.id)
-    .then(game => {
-      console.log("move history:", game)
-      const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
-      chess.printBoard(currentBoard)
-      const isLegalMove = chess.playMove(currentBoard, move) !== false
-      console.log("is legal move?", isLegalMove)
-      if (isLegalMove){
-        console.log("playing move:", move)
-        Game.findByIdAndUpdate(
-          request.params.id, 
-          { $push: { moveHistory: move }},
-          { new: true, runValidators: true })
-            .then(updatedGame => {
-              console.log("move history", updatedGame.moveHistory)
-              response.json(updatedGame)
-            })
-            .catch(error => next(error))
-        } else {
-          console.log("invalid move inputted")
-        }
-      })
+  try {
+    const game = await Game.findById(request.params.id)
+    const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
+    const isLegalMove = chess.playMove(currentBoard, move) !== false
+    if (isLegalMove){
+      console.log("playing move:", move)
+      try {
+      const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
+        { $push: { moveHistory: move }},
+        { new: true, runValidators: true })
+        console.log("move history", updatedGame.moveHistory)
+        response.json(updatedGame)
+      } catch (error){
+        next(error)
+      }
+    }
+  } catch (error) {
+    console.log("Unable to validate move")
+    next(error)
+  }
 })
 
-app.delete('/api/games/:id/moves', (request, response, next) => {
+app.delete('/api/games/:id/moves', async (request, response, next) => {
   console.log("deleting", request)
-  Game.updateOne(
-    { _id: request.params.id },
-    { $pop: { moveHistory: 1 }},
-    { new: true })
-      .then(document => {
-        response.json(document)
-      })
-      .catch(error => next(error))
+  try {
+    const updatedGame = await Game.updateOne(
+        { _id: request.params.id },
+        { $pop: { moveHistory: 1 }},
+        { new: true })
+        response.json(updatedGame)
+  } catch (error){
+    next (error)
+  }
 })
 
-app.delete('/api/games/:id/new', (request, response, next) => {
-  Game.update(
-    { _id: request.params.id },
-    { $set: { moveHistory: [] }},
-    { new: true })
-      .then(document => {
-        response.json(document)
-      })
-      .catch(error => next(error))
+app.delete('/api/games/:id/new', async (request, response, next) => {
+  try {
+    const newGame = await Game.updateOne(
+        { _id: request.params.id },
+        { $set: { moveHistory: [] }},
+        { new: true })
+    response.json(newGame)
+  } catch (error){
+    console.log("Could not start new game")
+    next(error)
+  }
 })
 
 const errorHandler = (error, request, response, next) => {
