@@ -3,9 +3,9 @@ content-type: application/json
 
 {
     "piece": {
-        "type": "knight",
-        "color": "white"
+        "type": "pawn",
+        "color": "black"
     },
-    "from": "b1",
-    "to": "c3"
+    "from": "h7",
+    "to": "h6"
 }

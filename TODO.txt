@@ -1,8 +1,6 @@
 TODO LIST
 -----------
 
-- [ ] Get attacked squares
-- [ ] Is king in check method
 - [x] Create games server
 - [x] Created game schema that includes move history
 - [x] Create POST request for creating new game

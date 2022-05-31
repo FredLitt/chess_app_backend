@@ -25,12 +25,27 @@ app.post('/api/games', (request, response, next) => {
   .catch(error => next(error))
 })
 
+app.get('/api/games/:id/moves', (request, response, next) => {
+  console.log("Getting game")
+  Game.findById(request.params.id)
+    .then(game => {
+      if (game) {
+        response.json(game)
+      } else {
+        console.log("fail")
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
+})
+
 app.post('/api/games/:id/moves', (request, response, next) => {
   const move = {
     piece: request.body.piece,
     from: request.body.from,
     to: request.body.to
   }
+
   const chess = new Chess()
   
   Game.findById(request.params.id)
@@ -55,20 +70,26 @@ app.post('/api/games/:id/moves', (request, response, next) => {
           console.log("invalid move inputted")
         }
       })
-  
-  //const board = chess.createBoardFromMoveHistory(game.moveHistory)
-  // if move is valid then run...
-
-  
 })
 
-app.delete('/api/games/:id', (request, response, next) => {
+app.delete('/api/games/:id/moves', (request, response, next) => {
+  console.log("deleting", request)
   Game.updateOne(
     { _id: request.params.id },
     { $pop: { moveHistory: 1 }},
     { new: true })
       .then(document => {
-        console.log(document)
+        response.json(document)
+      })
+      .catch(error => next(error))
+})
+
+app.delete('/api/games/:id/new', (request, response, next) => {
+  Game.update(
+    { _id: request.params.id },
+    { $set: { moveHistory: [] }},
+    { new: true })
+      .then(document => {
         response.json(document)
       })
       .catch(error => next(error))
@@ -82,7 +103,6 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === "ValidationError") {
     return response.status(400).json({ error: error.message })
   }
-
   next(error)
 }
 
