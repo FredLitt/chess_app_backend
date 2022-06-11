@@ -679,18 +679,12 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             }
             const x = square[0]
             const y = parseInt(square[1])
-            const notOnBoard = (!this.xAxis.includes(x) || y > 8 || y < 1)
-            if (notOnBoard){
-                return false
-            }
-            return true
+            const squareOnBoard = (this.xAxis.includes(x) && y < 8 && y > 1)
+            return squareOnBoard
         }
     
         squaresAreTheSame(square1, square2){
-            if (square1 === square2){
-                return true
-            }
-            return false
+            return square1 === square2
         }
     
         getSquare(board, square){
