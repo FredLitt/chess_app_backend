@@ -57,6 +57,16 @@ const moveSchema = new mongoose.Schema({
     },
   },
 
+  promotion: {
+    type: String,
+    required: false,
+      validate: {
+      validator: function(x){
+        return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
+      },
+    },
+  }
+
 })
 
 const gameSchema = new mongoose.Schema({

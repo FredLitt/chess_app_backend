@@ -43,19 +43,18 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     from: request.body.from,
     to: request.body.to
   }
-
+  if (request.body.promotion){ move.promotion = request.body.promotion}
   const chess = new Chess()
   try {
     const game = await Game.findById(request.params.id)
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
     const isLegalMove = chess.playMove(currentBoard, move) !== false
     if (isLegalMove){
-      console.log("playing move:", move)
+      
       try {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
         { $push: { moveHistory: move }},
         { new: true, runValidators: true })
-        console.log("move history", updatedGame.moveHistory)
         response.json(updatedGame)
       } catch (error){
         next(error)
@@ -68,7 +67,6 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
 })
 
 app.delete('/api/games/:id/moves', async (request, response, next) => {
-  console.log("deleting", request)
   try {
     const updatedGame = await Game.updateOne(
         { _id: request.params.id },
