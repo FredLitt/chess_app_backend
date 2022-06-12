@@ -43,14 +43,17 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     from: request.body.from,
     to: request.body.to
   }
-  if (request.body.promotion){ move.promotion = request.body.promotion}
+
+  if (request.body.promotion){
+    move.promotion = request.body.promotion
+  }
+  
   const chess = new Chess()
   try {
     const game = await Game.findById(request.params.id)
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
     const isLegalMove = chess.playMove(currentBoard, move) !== false
     if (isLegalMove){
-      
       try {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
         { $push: { moveHistory: move }},

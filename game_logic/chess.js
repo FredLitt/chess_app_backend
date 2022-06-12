@@ -145,8 +145,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 }
             }
             attackingPiecesSquares.forEach(square => attackedSquares.push(this.findSquaresForPiece(board, square, "controlled squares")))
-            attackedSquares = attackedSquares.flat()
-            return attackedSquares
+            return attackedSquares.flat()
         }
     
         findAllPossibleMoves(board, color){
@@ -171,9 +170,10 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         findSquaresForPiece(board, piecesSquare, squaresToFind){
+
             const movingPiece = this.getSquare(board, piecesSquare).piece.type
             const longRangePiece = movingPiece === "bishop" || movingPiece === "rook" || movingPiece === "queen"
-    
+
             if (movingPiece === "pawn"){ return this.findSquaresForPawn(board, piecesSquare, squaresToFind) }
             if (movingPiece === "knight"){ return this.findSquaresForKnight(board, piecesSquare, squaresToFind) }
             if (movingPiece === "king"){ return this.findSquaresForKing(board, piecesSquare, squaresToFind) }
@@ -233,23 +233,26 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                         
                         const invalidMove = !squareIsOnBoard || squareHasFriendlyPiece
                         if (invalidMove) {
+                            console.log("invalid move")
                             completedDirections.push(direction) 
                             continue
                         }
     
                         const moveExposesKing = this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)
                         if (moveExposesKing){
-                     
+                            console.log("move exposes king")
                             completedDirections.push(direction)
                             continue
                         }
                         
                         if (squareHasEnemyPiece) {
                             completedDirections.push(direction)
-                            if (!moveExposesKing) {
-                                squares.push(possibleSquare)
-                                continue
-                            }
+                            squares.push(possibleSquare)
+                            continue
+                            // if (!moveExposesKing) {
+                            //     squares.push(possibleSquare)
+                            //     continue
+                            // }
                         }
                         squares.push(possibleSquare)
                     }
@@ -289,6 +292,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     if (!squareIsOnBoard || squareHasFriendlyPiece){ continue }
                     
                     const moveExposesKing = this.doesMoveExposeKing(board, { from: kingsSquare, to: possibleSquare }, kingColor)
+
                     if (moveExposesKing){
                         continue
                     }
@@ -297,10 +301,11 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                         squares.push(possibleSquare)            
                     }
     
-                    if (move.includes("Castle")){
-                        if (!this.isCastlingLegal(board, kingColor, move)){
-                            continue
-                        }
+                    if (move.includes("Castle") && !this.isCastlingLegal(board, kingColor, move)){
+                        continue
+                        // if (!this.isCastlingLegal(board, kingColor, move)){
+                        //     continue
+                        // }
                     }
                     squares.push(possibleSquare)
                 }
@@ -598,12 +603,16 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
         playMove(board, move){
             console.log("back end playing move:", move)
+
             const isValidMove = this.isMoveValid(board, move)
             if (!isValidMove){
                 console.log("invalid move entry!")
                 return false
             }
+
             const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
+            console.log("legal moves:", legalMoves)
+
             const moveIsLegal = legalMoves.some(legalMove => legalMove === move.to)
 
             if (!moveIsLegal){
@@ -654,8 +663,9 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         getOpposingColor(color){
-            if (color === "white"){ return "black" }
-            return "white"
+            let opposingColor
+            color === "white" ? opposingColor = "black" : opposingColor = "white"
+            return opposingColor
         }
     
         isSquareOnBoard(square){
@@ -701,6 +711,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 blackPawn, blackPawn, blackPawn, blackPawn, blackPawn, blackPawn, blackPawn, blackPawn,
                 blackKnight, blackKnight, blackBishop, blackBishop, blackRook, blackRook, blackQueen
             ]
+
             for (let y = 0; y < 8; y++){
                 for (let x = 0; x < 8; x++){
                     const square = this.indicesToCoordinates([y, x])
@@ -716,14 +727,15 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         isSamePiece(piece1, piece2){
-            if (piece1.type === piece2.type && piece1.color === piece2.color){ return true }
-            return false
+            return (piece1.type === piece2.type) && (piece1.color === piece2.color)
         }
     
         getSan(move){
+            console.log("getting san for:", move)
             if (move === null){
                 throw new Error("invalid move");
             }
+
             let san = ""
             const pieceLetter = this.getPieceLetter(move.piece)
             const isPawnMove = move.piece.type === "pawn"
@@ -732,12 +744,13 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const isCheckmate = move.data.checkmate === true
             const isCheck = move.data.check === true
             const isPromotion = typeof move.data.promotion === "string"
+            
             if (isCastle){
                 move.data.castle === "Kingside" ? san = "O-O" : san = "O-O-O"
                 if (isCheckmate){
-                    return san += "#"
+                    return san + "#"
                 } else if (isCheck){
-                    return san += "+"
+                    return san + "+"
                 }
                 return san
             }
@@ -749,6 +762,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     san += `${move.from[0]}x${move.to}`
                 }
             }
+
             if (!isPawnMove){
                 if (!isCapture){
                     san += `${pieceLetter}${move.to}`
