@@ -58,13 +58,24 @@ const moveSchema = new mongoose.Schema({
   },
 
   promotion: {
-    type: String,
-    required: false,
+    type: {
+      type: String,
       validate: {
-      validator: function(x){
-        return /^pawn$|^knight$|^bishop$|^rook$|^queen$|^king$/g.test(x)
+        validator: function(x){
+          return /|^knight$|^bishop$|^rook$|^queen$|/g.test(x)
+        },
+        message: '{VALUE] is not a valid piece type'
       },
     },
+
+    color: {
+      type: String,
+      validate: {
+        validator: function(x){
+          return /^white$|^black$/g.test(x)
+        },
+      },
+    }
   }
 
 })
