@@ -600,10 +600,16 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const moveIsValid = (squareHasPiece || moveSquaresAreOnBoard || correctPlayer || !gameOver)
             return moveIsValid
         }
+
+        isMovePromotion(move){
+            if (move.piece.type !== "pawn"){ return false }
+            const targetRow = parseInt(move.to[1])
+            const pawnColor = move.piece.color
+            const moveIsPromotion = (pawnColor === "white" && targetRow === 8) || (pawnColor === "black" && targetRow === 1)
+            return moveIsPromotion
+        }
     
         playMove(board, move){
-            console.log("back end playing move:", move)
-
             const isValidMove = this.isMoveValid(board, move)
             if (!isValidMove){
                 console.log("invalid move entry!")
@@ -622,9 +628,9 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
 
             move.data = {}
             let movingPiece = this.getSquare(board, move.from).piece
-            const capture = this.getSquare(board, move.to).piece !== null 
+            const isCapture = this.getSquare(board, move.to).piece !== null 
             
-            if (capture){ move.data.capture = true }
+            if (isCapture){ move.data.capture = true }
             
             if (this.isMoveEnPassant(board, move)){
                 move.data.enPassant = true
@@ -640,15 +646,15 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 this.castle(board, direction, color)
             }
 
-            if (move.promotion){
+            if (this.isMovePromotion(move)){
                 console.log("promotion!", move.promotion)
                 movingPiece.formerPawn = true
                 move.data.promotion = move.promotion
             }
 
+            this.isMovePromotion(move) ? this.getSquare(board, move.to).piece = move.promotion : this.getSquare(board, move.to).piece = movingPiece
             this.getSquare(board, move.from).piece = null
-            this.getSquare(board, move.to).piece = movingPiece
-
+            
             if (this.isKingInCheckMate(board, this.getOpposingColor(movingPiece.color))){
                 move.data.checkmate = true
             }

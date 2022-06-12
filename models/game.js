@@ -67,7 +67,6 @@ const moveSchema = new mongoose.Schema({
         message: '{VALUE] is not a valid piece type'
       },
     },
-
     color: {
       type: String,
       validate: {
