@@ -413,8 +413,10 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 }
     
                 if (squaresToFind === "controlled squares"){
-                    if (!move === "CaptureEast" || !move === "CaptureWest"){ continue }
-                }
+                    if (move === "CaptureEast" || move === "CaptureWest"){ 
+                        squares.push(possibleSquare)
+                    }       
+                }  
             }
             return squares
         } 
