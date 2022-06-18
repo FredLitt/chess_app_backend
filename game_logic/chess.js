@@ -611,7 +611,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
         playMove(board, move){
             console.log("play move:", move)
-
             const isValidMove = this.isMoveValid(board, move)
             if (!isValidMove){
                 console.log("invalid move entry!")
@@ -627,29 +626,30 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 return false
             }
 
-            move.data = {}
+            move.data = new Set()
             const startSquare = this.getSquare(board, move.from)
             const endSquare = this.getSquare(board, move.to)
             let movingPiece = startSquare.piece
             const isCapture = endSquare.piece !== null 
             
             if (isCapture){ 
+                move.data.add("capture")
                 this.capturePiece(endSquare.piece)
-                move.data.capture = true 
             }
             
             if (this.isMoveEnPassant(board, move)){
-                move.data.enPassant = true
-                move.data.capture = true
-                const pawnToCapturesSquare = this.getEnPassantTarget()
+                move.data.add("enPassant").add("capture")
+                const coordinatesOfCapturedPawn = this.getEnPassantTarget()
+                const pawnToCapturesSquare = this.getSquare(board, coordinatesOfCapturedPawn)
+                console.log("pawn to capture's square:", pawnToCapturesSquare)
                 this.capturePiece(pawnToCapturesSquare.piece)
-                this.getSquare(board, pawnToCapturesSquare).piece = null
+                pawnToCapturesSquare.piece = null
             }
 
             if (this.isMoveCastling(board, move)){
                 const direction = this.isMoveCastling(board, move)
                 const color = this.getPiecesColor(board, move.from)
-                move.data.castle = this.isMoveCastling(board, move)
+                move.data.add(this.isMoveCastling(board, move))
                 this.castle(board, direction, color)
             }
 
@@ -663,11 +663,11 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             startSquare.piece = null
             
             if (this.isKingInCheckMate(board, this.getOpposingColor(movingPiece.color))){
-                move.data.checkmate = true
+                move.data.add("checkmate")
             }
 
             if (this.isKingInCheck(board, this.getOpposingColor(movingPiece.color))){
-                move.data.check = true
+                move.data.add("check")
             }
             const fullMove = this.buildMove(movingPiece, move)
             this.moveHistory.push(fullMove)
@@ -726,14 +726,14 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             let san = ""
             const pieceLetter = this.getPieceLetter(move.piece)
             const isPawnMove = move.piece.type === "pawn"
-            const isCastle = typeof move.data.castle === "string" 
-            const isCapture = move.data.capture === true
-            const isCheckmate = move.data.checkmate === true
-            const isCheck = move.data.check === true
+            const isCastle = move.data.has("Kingside") || move.data.has("Queenside")
+            const isCapture = move.data.has("capture")
+            const isCheckmate = move.data.has("checkmate")
+            const isCheck = move.data.has("check")
             const isPromotion = typeof move.data.promotion === "string"
             
             if (isCastle){
-                move.data.castle === "Kingside" ? san = "O-O" : san = "O-O-O"
+                move.data.has("Kingside") ? san = "O-O" : san = "O-O-O"
                 if (isCheckmate){
                     return san + "#"
                 } else if (isCheck){
