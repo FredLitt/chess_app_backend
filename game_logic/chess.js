@@ -233,14 +233,12 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                         
                         const invalidMove = !squareIsOnBoard || squareHasFriendlyPiece
                         if (invalidMove) {
-                            console.log("invalid move")
                             completedDirections.push(direction) 
                             continue
                         }
     
                         const moveExposesKing = this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)
                         if (moveExposesKing){
-                            console.log("move exposes king")
                             completedDirections.push(direction)
                             continue
                         }
@@ -337,7 +335,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     if (squareHasFriendlyPiece){ continue }
                     const moveExposesKing = this.doesMoveExposeKing(board, { from: knightsSquare, to: possibleSquare }, knightsColor)
                     if (moveExposesKing){ continue }
-                    console.log("knight move exposes king")
                     squares.push(possibleSquare)
                 }
     
@@ -550,40 +547,40 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
         // Refactor with objects? Too many if statements
         castle(board, direction, color){
-            let rookSquares = {}
-            let kingSquares = {}
+            let castleSquares
             if (color === "white"){
-                kingSquares.start = "e1"
-                if (direction === "Kingside"){
-                    kingSquares.end = "g1"
-                    rookSquares.start = "h1"
-                    rookSquares.end = "f1"
+                direction === "Kingside" ? 
+                    castleSquares = { 
+                        kingStart: "e1",
+                        kingEnd: "g1",
+                        rookStart: "h1",
+                        rookEnd: "f1"
+                    } :
+                    castleSquares = {
+                        kingStart: "e1",
+                        kingEnd: "c1",
+                        rookStart: "a1",
+                        rookEnd: "d1"
+                    }
+            } else {
+                direction === "Kingside" ? 
+                    castleSquares = { 
+                        kingStart: "e8",
+                        kingEnd: "g8",
+                        rookStart: "h8",
+                        rookEnd: "f8"
+                    } :
+                    castleSquares = {
+                        kingStart: "e8",
+                        kingEnd: "c8",
+                        rookStart: "a8",
+                        rookEnd: "d8"
+                    }
                 }
-                if (direction === "Queenside"){
-                    kingSquares.end = "c1"
-                    rookSquares.start = "a1"
-                    rookSquares.end = "d1"
-                }
-            }
-            if (color === "black"){
-                kingSquares.start = "e8"
-                if (direction === "Kingside"){
-                    kingSquares.end = "g8"
-                    rookSquares.start = "h8"
-                    rookSquares.end = "f8"
-                }
-                if (direction === "Queenside"){
-                    kingSquares.end = "c8"
-                    rookSquares.start = "a8"
-                    rookSquares.end = "d8"
-                }
-            }
-            const king = this.getSquare(board, kingSquares.start).piece
-            const rook = this.getSquare(board, rookSquares.start).piece
-            this.getSquare(board, kingSquares.start).piece = null
-            this.getSquare(board, kingSquares.end).piece = king
-            this.getSquare(board, rookSquares.start).piece = null
-            this.getSquare(board, rookSquares.end).piece = rook
+                this.getSquare(board, castleSquares.kingStart).piece = null
+                this.getSquare(board, castleSquares.kingEnd).piece = { type: "king", color: color }
+                this.getSquare(board, castleSquares.rookStart).piece = null
+                this.getSquare(board, castleSquares.rookEnd).piece = { type: "rook", color: color }
         }
     
         isMoveValid(board, move){
@@ -664,6 +661,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
 
             const fullMove = this.buildMove(movingPiece, move)
             this.moveHistory.push(fullMove)
+            this.printBoard(board)
             return board
         }
     
@@ -717,13 +715,14 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 blackKnight, blackKnight, blackBishop, blackBishop, blackRook, blackRook, blackQueen
             ]
 
-            for (let y = 0; y < 8; y++){
+            for (let y = 7; y >= 0; y){
                 for (let x = 0; x < 8; x++){
                     const square = this.indicesToCoordinates([y, x])
                     if (this.getSquare(board, square).piece !== null){
                         if (this.getSquare(board, square).piece.type === "king"){ continue }
                         const pieceAtSquare = this.getSquare(board, square).piece
-                        const indexToRemove = pieces.findIndex(piece => piece.type === pieceAtSquare.type && piece.color === pieceAtSquare.color)
+                        let indexToRemove = pieces.findIndex(piece => piece.type === pieceAtSquare.type && piece.color === pieceAtSquare.color)
+                        console.log("piece:", pieceAtSquare, square)
                         pieces.splice(indexToRemove, 1)
                     }
                 }
@@ -737,10 +736,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
         getSan(move){
             console.log("getting san for:", move)
-            if (move === null){
-                throw new Error("invalid move");
-            }
-
+          
             let san = ""
             const pieceLetter = this.getPieceLetter(move.piece)
             const isPawnMove = move.piece.type === "pawn"
@@ -761,19 +757,11 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             }
             
             if (isPawnMove){
-                if (!isCapture){
-                    san += `${move.from[0]}${move.to[1]}`
-                } else {
-                    san += `${move.from[0]}x${move.to}`
-                }
+                isCapture ? san += `${move.from[0]}x${move.to}` : san += `${move.from[0]}${move.to[1]}`
             }
 
             if (!isPawnMove){
-                if (!isCapture){
-                    san += `${pieceLetter}${move.to}`
-                } else {
-                    san += `${pieceLetter}x${move.to}`
-                }
+                isCapture ? san += `${pieceLetter}x${move.to}` : san += `${pieceLetter}${move.to}`
             }
     
             if (isPromotion){
@@ -781,12 +769,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 const promotionLetter = this.getPieceLetter(promotionPiece)
                 san += `=${promotionLetter}`
             }
-    
-            /// Could extract the call to `disambiguate` into a local var to avoid calling twice
-            // if (disambiguate_move(chess, full_move) !== null){
-            //     const disambiguator = disambiguate_move(chess, full_move);
-            //     san = san.slice(0, 1) + disambiguator + san.slice(1, san.length);
-            // }
+
             if (isCheckmate){
                 return san + "#"
             } else if (isCheck){
