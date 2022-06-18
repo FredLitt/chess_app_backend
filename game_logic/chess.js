@@ -5,6 +5,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         constructor(){
             this.xAxis = ["a", "b", "c", "d", "e", "f", "g", "h"]
             this.moveHistory = []
+            this.capturedPieces = []
         }
         createEmptyBoard(){
             const board = []
@@ -530,9 +531,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 startSquare = "e1"
                 kingsideEndSquare = "g1"
                 queensideEndSquare = "c1"
-            }
-    
-            if (kingColor === "black"){
+            } else {
                 startSquare = "e8"
                 kingsideEndSquare = "g8"
                 queensideEndSquare = "c8"
@@ -601,6 +600,14 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const moveIsPromotion = (pawnColor === "white" && targetRow === 8) || (pawnColor === "black" && targetRow === 1)
             return moveIsPromotion
         }
+
+        capturePiece(piece){
+            if ("formerPawn" in piece){
+                this.capturedPieces.push({ type: "pawn", color: piece.color })
+            } else {
+                this.capturedPieces.push(piece)
+            }
+        }
     
         playMove(board, move){
             console.log("play move:", move)
@@ -626,12 +633,16 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             let movingPiece = startSquare.piece
             const isCapture = endSquare.piece !== null 
             
-            if (isCapture){ move.data.capture = true }
+            if (isCapture){ 
+                this.capturePiece(endSquare.piece)
+                move.data.capture = true 
+            }
             
             if (this.isMoveEnPassant(board, move)){
                 move.data.enPassant = true
                 move.data.capture = true
                 const pawnToCapturesSquare = this.getEnPassantTarget()
+                this.capturePiece(pawnToCapturesSquare.piece)
                 this.getSquare(board, pawnToCapturesSquare).piece = null
             }
 
@@ -643,12 +654,12 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             }
 
             if (this.isMovePromotion(move)){
-                console.log("promotion!", move.promotion)
-                movingPiece.formerPawn = true
                 move.data.promotion = move.promotion
+                movingPiece = move.promotion
+                movingPiece.formerPawn = true
             }
 
-            this.isMovePromotion(move) ? endSquare.piece = move.promotion : endSquare.piece = movingPiece
+            endSquare.piece = movingPiece
             startSquare.piece = null
             
             if (this.isKingInCheckMate(board, this.getOpposingColor(movingPiece.color))){
@@ -658,10 +669,8 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             if (this.isKingInCheck(board, this.getOpposingColor(movingPiece.color))){
                 move.data.check = true
             }
-
             const fullMove = this.buildMove(movingPiece, move)
             this.moveHistory.push(fullMove)
-            this.printBoard(board)
             return board
         }
     
@@ -705,29 +714,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         indicesToCoordinates(indices){
             const [ row, col ] = indices
             return `${this.xAxis[col]}${8 - row}`
-        }
-    
-        getCapturedPieces(board){
-            let pieces = [
-                whitePawn, whitePawn, whitePawn, whitePawn, whitePawn, whitePawn, whitePawn, whitePawn,
-                whiteKnight, whiteKnight, whiteBishop, whiteBishop, whiteRook, whiteRook, whiteQueen,
-                blackPawn, blackPawn, blackPawn, blackPawn, blackPawn, blackPawn, blackPawn, blackPawn,
-                blackKnight, blackKnight, blackBishop, blackBishop, blackRook, blackRook, blackQueen
-            ]
-
-            for (let y = 7; y >= 0; y){
-                for (let x = 0; x < 8; x++){
-                    const square = this.indicesToCoordinates([y, x])
-                    if (this.getSquare(board, square).piece !== null){
-                        if (this.getSquare(board, square).piece.type === "king"){ continue }
-                        const pieceAtSquare = this.getSquare(board, square).piece
-                        let indexToRemove = pieces.findIndex(piece => piece.type === pieceAtSquare.type && piece.color === pieceAtSquare.color)
-                        console.log("piece:", pieceAtSquare, square)
-                        pieces.splice(indexToRemove, 1)
-                    }
-                }
-            }
-            return pieces
         }
     
         isSamePiece(piece1, piece2){
@@ -823,7 +809,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             return board
         }
     
-        // TODO: Fix stackoverflow issue with this and getWhoseTurn()
         isGameOver(board){
             const checkmate = this.isKingInCheckMate(board, "white") || this.isKingInCheckMate(board, "black")
             if (checkmate){

@@ -34,7 +34,7 @@ const moveSchema = new mongoose.Schema({
           return /^white$|^black$/g.test(x)
         },
       },
-    }
+    },
   },
 
   from: {
