@@ -61,17 +61,12 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         getSquareColor(col, row){
-            if ((col + row + 1) % 2 === 0){
-                return "dark"
-            }
-            return "light"
+            return ((col + row + 1) % 2 === 0) ? "dark" : "light"
         }
     
         isSquareOccupied(board, square){
             const squareIsOccupied = this.isSquareOnBoard(square) && this.getSquare(board, square).piece
             return squareIsOccupied
-            // if (!this.isSquareOnBoard(square) || this.getSquare(board, square).piece === null){ return false }
-            // return true
         }
     
         isKingInCheck(board, kingColor){
@@ -114,8 +109,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const movingPiece = this.getSquare(testBoard, move.from).piece
             const targetSquare = this.getSquare(testBoard, move.to).coordinate
             testBoard = this.placePieces(testBoard, [ { piece: movingPiece, squares: targetSquare}, { piece: null, squares: startSquare }])
-            const kingWouldBeInCheck = this.isKingInCheck(testBoard, kingColor)
-            return kingWouldBeInCheck
+            return this.isKingInCheck(testBoard, kingColor)
         }
     
         clone(board){
@@ -467,10 +461,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             return (moveHistoryFromSquares.includes(castlingRookSquare) || noRookOnSquare)
         }
     
-        movesAreTheSame(move1, move2){
-            return (move1.from === move2.from && move1.to === move2.to)
-        }
-    
         buildMove(piece, move){
             return { 
                 piece: piece, 
@@ -516,8 +506,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const pawnToCapturesSquare = lastMove?.to
             return pawnToCapturesSquare
         }
-    
-        // Refactor with fewer if statements?
+
         isMoveCastling(board, move){
             const kingMove = this.getSquare(board, move.from).piece.type === "king"
             if (!kingMove) {
@@ -544,7 +533,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             return false
         }
     
-        // Refactor with objects? Too many if statements
         castle(board, direction, color){
             let castleSquares
             if (color === "white"){
@@ -609,9 +597,10 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             }
         }
     
-        playMove(board, move){
-            console.log("play move:", move)
-            const isValidMove = this.isMoveValid(board, move)
+        // Remove validity check when replaying moves
+        playMove(board, move, skipValidityCheck){
+            const isValidMove = (skipValidityCheck) ? true : this.isMoveValid(board, move)
+            console.log("move is valid?", isValidMove)
             if (!isValidMove){
                 console.log("invalid move entry!")
                 return false
@@ -675,9 +664,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         getOpposingColor(color){
-            let opposingColor
-            color === "white" ? opposingColor = "black" : opposingColor = "white"
-            return opposingColor
+            return (color === "white") ? "black" : "white"
         }
     
         isSquareOnBoard(square){
@@ -796,15 +783,14 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 "queen": "Q",
                 "king": "K"
             }
-            let letter = pieceLetters[type]
-            if (color === "black" && use === "console"){ letter = letter.toLowerCase() }
-            return letter
+            return (color === "black" && use === "console") ? pieceLetters[type].toLowerCase() : pieceLetters[type]
         }
     
         createBoardFromMoveHistory(moveHistory){
             let board = this.createStartPosition()
+            const skipValidityCheck = true
             for (let i = 0; i < moveHistory.length; i++){
-                board = this.playMove(board, moveHistory[i])
+                board = this.playMove(board, moveHistory[i], skipValidityCheck)
             }
             return board
         }
@@ -828,11 +814,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         getWhoseTurn(moveHistory){
-            const numberOfMovesPlayed = moveHistory.length
-            if (numberOfMovesPlayed % 2 === 0){
-                return "white"
-            }
-            return "black"
+            return (moveHistory.length % 2 === 0) ? "white" : "black"
         }
     }
 
