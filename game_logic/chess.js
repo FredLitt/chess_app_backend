@@ -107,7 +107,11 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             let testBoard = this.clone(board)
             const startSquare = this.getSquare(testBoard, move.from).coordinate
             const movingPiece = this.getSquare(testBoard, move.from).piece
-            const targetSquare = this.getSquare(testBoard, move.to).coordinate
+            const targetSquare = this.getSquare(testBoard, move.to).coordinate   
+            if (this.isMoveEnPassant(testBoard, move)){
+                const pawnToCapturesSquare = this.getEnPassantTarget()
+                this.getSquare(testBoard, pawnToCapturesSquare).piece = null
+            }
             testBoard = this.placePieces(testBoard, [ { piece: movingPiece, squares: targetSquare}, { piece: null, squares: startSquare }])
             return this.isKingInCheck(testBoard, kingColor)
         }
@@ -426,9 +430,10 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         isCastlingLegal(board, kingColor, castlingDirection){
             const castlingSquaresAreControlled = this.areCastlingSquaresControlled(board, kingColor, castlingDirection)
             const kingIsInCheck = this.isKingInCheck(board, kingColor)
+            console.log(kingColor, "king in check?", kingIsInCheck)
             const kingHasMoved = this.hasKingMoved(board, kingColor)
             const rookHasMoved = this.hasCastlingRookMoved(board, kingColor, castlingDirection)
-            const castlingIsLegal = (!castlingSquaresAreControlled || !kingIsInCheck || !kingHasMoved || !rookHasMoved)
+            const castlingIsLegal = (!castlingSquaresAreControlled && !kingIsInCheck && !kingHasMoved && !rookHasMoved)
             return castlingIsLegal
         }
     
@@ -610,7 +615,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
 
         isMoveLegal(board, move){
             const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
-            console.log("legal moves:", legalMoves)
             return legalMoves.some(legalMove => legalMove === move.to)
         }
 
