@@ -234,7 +234,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
                         const moveExposesKing = this.doesMoveExposeKing(board, { from: fromSquare, to: possibleSquare }, movingPieceColor)
                         if (moveExposesKing){
-                            completedDirections.push(direction)
                             continue
                         }
                         
@@ -611,6 +610,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
 
         isMoveLegal(board, move){
             const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
+            console.log("legal moves:", legalMoves)
             return legalMoves.some(legalMove => legalMove === move.to)
         }
 
