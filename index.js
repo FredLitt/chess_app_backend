@@ -42,6 +42,7 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     piece: request.body.piece,
     from: request.body.from,
     to: request.body.to
+    //data: request.body.data
   }
 
   if (request.body.promotion){
@@ -52,8 +53,10 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
   try {
     const game = await Game.findById(request.params.id)
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
-    const isLegalMove = chess.playMove(currentBoard, move) !== false
-    if (isLegalMove){
+    const isPlayableMove = chess.isPlayableMove(currentBoard, move)
+    const fullMove = chess.getFullMove(currentBoard, move)
+    console.log("Full move:", fullMove)
+    if (isPlayableMove){
       try {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
         { $push: { moveHistory: move }},

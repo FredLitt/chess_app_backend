@@ -57,6 +57,10 @@ const moveSchema = new mongoose.Schema({
     },
   },
 
+  data: {
+    type: [String]
+  },
+
   promotion: {
     type: {
       type: String,

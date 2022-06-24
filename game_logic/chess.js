@@ -528,15 +528,15 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const kingOnStartSquare = move.from === startSquare
             const kingWentKingside = move.to === kingsideEndSquare
             const kingWentQueenside = move.to === queensideEndSquare
-            if (kingOnStartSquare && kingWentKingside){ return "Kingside" }
-            if (kingOnStartSquare && kingWentQueenside){ return "Queenside" }
+            if (kingOnStartSquare && kingWentKingside){ return "Castle Kingside" }
+            if (kingOnStartSquare && kingWentQueenside){ return "Castle Queenside" }
             return false
         }
     
         castle(board, direction, color){
             let castleSquares
             if (color === "white"){
-                direction === "Kingside" ? 
+                direction.includes("Kingside") ? 
                     castleSquares = { 
                         kingStart: "e1",
                         kingEnd: "g1",
@@ -550,7 +550,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                         rookEnd: "d1"
                     }
             } else {
-                direction === "Kingside" ? 
+                direction.includes("Kingside") ? 
                     castleSquares = { 
                         kingStart: "e8",
                         kingEnd: "g8",
@@ -569,17 +569,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 this.getSquare(board, castleSquares.rookStart).piece = null
                 this.getSquare(board, castleSquares.rookEnd).piece = { type: "rook", color: color }
         }
-    
-        isMoveValid(board, move){
-            const squareHasPiece = this.isSquareOccupied(board, move.from)
-            const moveSquaresAreOnBoard = this.isSquareOnBoard(move.to) && this.isSquareOnBoard(move.from)
-            const movingPlayerColor = move.piece.color
-            const whoseTurn = this.getWhoseTurn(this.moveHistory)
-            const correctPlayer = whoseTurn === movingPlayerColor
-            const gameOver = this.isGameOver(board)
-            const moveIsValid = (squareHasPiece || moveSquaresAreOnBoard || correctPlayer || !gameOver)
-            return moveIsValid
-        }
 
         isMovePromotion(move){
             if (move.piece.type !== "pawn"){ return false }
@@ -596,50 +585,96 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 this.capturedPieces.push(piece)
             }
         }
-    
-        // Remove validity check when replaying moves
-        playMove(board, move, skipValidityCheck){
-            const isValidMove = (skipValidityCheck) ? true : this.isMoveValid(board, move)
-            console.log("move is valid?", isValidMove)
-            if (!isValidMove){
-                console.log("invalid move entry!")
-                return false
+   
+        createBoardFromMoveHistory(moveHistory){
+            let board = this.createStartPosition()
+            for (let i = 0; i < moveHistory.length; i++){
+                board = this.playMove(board, moveHistory[i])
             }
+            return board
+        }
 
+        isPlayableMove(board, move){
+            return this.isMoveLegal(board, move) && this.isMoveValid(board, move)
+        }
+            
+        isMoveValid(board, move){
+            const squareHasPiece = this.isSquareOccupied(board, move.from)
+            const moveSquaresAreOnBoard = this.isSquareOnBoard(move.to) && this.isSquareOnBoard(move.from)
+            const movingPlayerColor = move.piece.color
+            const whoseTurn = this.getWhoseTurn(this.moveHistory)
+            const correctPlayer = whoseTurn === movingPlayerColor
+            const gameOver = this.isGameOver(board)
+            const moveIsValid = (squareHasPiece || moveSquaresAreOnBoard || correctPlayer || !gameOver)
+            return moveIsValid
+        }
+
+        isMoveLegal(board, move){
             const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
-            console.log("legal moves:", legalMoves)
-            const moveIsLegal = legalMoves.some(legalMove => legalMove === move.to)
+            return legalMoves.some(legalMove => legalMove === move.to)
+        }
 
-            if (!moveIsLegal){
-                console.log("not a legal move!")
+        getFullMove(board, move){
+            console.log("Getting full move:", move)
+            if (!this.isPlayableMove(board, move)){
                 return false
             }
-
-            move.data = new Set()
+ 
+            move.data = []
             const startSquare = this.getSquare(board, move.from)
             const endSquare = this.getSquare(board, move.to)
-            let movingPiece = startSquare.piece
+            let movingPiece = move.piece
             const isCapture = endSquare.piece !== null 
             
             if (isCapture){ 
-                move.data.add("capture")
-                this.capturePiece(endSquare.piece)
+                move.data.push("capture")
             }
             
             if (this.isMoveEnPassant(board, move)){
-                move.data.add("enPassant").add("capture")
+                move.data.push("enPassant", "capture")
+            }
+
+            if (this.isMoveCastling(board, move)){
+                const direction = this.isMoveCastling(board, move)
+                move.data.push(direction)
+            }
+
+            endSquare.piece = movingPiece
+            startSquare.piece = null
+            
+            if (this.isKingInCheckMate(board, this.getOpposingColor(movingPiece.color))){
+                move.data.push("checkmate")
+            }
+
+            if (this.isKingInCheck(board, this.getOpposingColor(movingPiece.color))){
+                move.data.push("check")
+            }
+            return move
+        }
+
+        // Remove validity check when replaying moves
+        playMove(board, move){
+            if (!this.isPlayableMove(board, move)){
+                return false
+            }
+            const startSquare = this.getSquare(board, move.from)
+            const endSquare = this.getSquare(board, move.to)
+            let movingPiece = startSquare.piece
+            
+            if (move.data.includes("capture") && !move.data.includes("enPassant")){ 
+                this.capturePiece(endSquare.piece)
+            }
+            
+            if (move.data.includes("enPassant")){
                 const coordinatesOfCapturedPawn = this.getEnPassantTarget()
                 const pawnToCapturesSquare = this.getSquare(board, coordinatesOfCapturedPawn)
-                console.log("pawn to capture's square:", pawnToCapturesSquare)
                 this.capturePiece(pawnToCapturesSquare.piece)
                 pawnToCapturesSquare.piece = null
             }
 
             if (this.isMoveCastling(board, move)){
                 const direction = this.isMoveCastling(board, move)
-                const color = this.getPiecesColor(board, move.from)
-                move.data.add(this.isMoveCastling(board, move))
-                this.castle(board, direction, color)
+                this.castle(board, direction, move.piece.color)
             }
 
             if (this.isMovePromotion(move)){
@@ -650,16 +685,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
 
             endSquare.piece = movingPiece
             startSquare.piece = null
-            
-            if (this.isKingInCheckMate(board, this.getOpposingColor(movingPiece.color))){
-                move.data.add("checkmate")
-            }
-
-            if (this.isKingInCheck(board, this.getOpposingColor(movingPiece.color))){
-                move.data.add("check")
-            }
-            const fullMove = this.buildMove(movingPiece, move)
-            this.moveHistory.push(fullMove)
+            this.moveHistory.push(move)
             return board
         }
     
@@ -708,27 +734,16 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
     
         getSan(move){
-            console.log("getting san for:", move)
-          
+            console.log("getting san for move:", move)
             let san = ""
             const pieceLetter = this.getPieceLetter(move.piece)
             const isPawnMove = move.piece.type === "pawn"
-            const isCastle = move.data.has("Kingside") || move.data.has("Queenside")
-            const isCapture = move.data.has("capture")
-            const isCheckmate = move.data.has("checkmate")
-            const isCheck = move.data.has("check")
+            const isCastle = move.data.some(string => string.includes("Castle"))
+            const isCapture = move.data.includes("capture")
+            const isCheckmate = move.data.includes("checkmate")
+            const isCheck = move.data.includes("check")
             const isPromotion = typeof move.data.promotion === "string"
-            
-            if (isCastle){
-                move.data.has("Kingside") ? san = "O-O" : san = "O-O-O"
-                if (isCheckmate){
-                    return san + "#"
-                } else if (isCheck){
-                    return san + "+"
-                }
-                return san
-            }
-            
+                        
             if (isPawnMove){
                 isCapture ? san += `${move.from[0]}x${move.to}` : san += `${move.from[0]}${move.to[1]}`
             }
@@ -736,17 +751,21 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             if (!isPawnMove){
                 isCapture ? san += `${pieceLetter}x${move.to}` : san += `${pieceLetter}${move.to}`
             }
-    
+
             if (isPromotion){
                 const promotionPiece = move.data.promotion
                 const promotionLetter = this.getPieceLetter(promotionPiece)
                 san += `=${promotionLetter}`
             }
 
+            if (isCastle){
+                move.data.includes("Castle Kingside") ? san = "O-O" : san = "O-O-O"
+            }
+
             if (isCheckmate){
-                return san + "#"
+                san += "#"
             } else if (isCheck){
-                return san + "+"
+                san += "+"
             }
             return san
         }
@@ -784,15 +803,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 "king": "K"
             }
             return (color === "black" && use === "console") ? pieceLetters[type].toLowerCase() : pieceLetters[type]
-        }
-    
-        createBoardFromMoveHistory(moveHistory){
-            let board = this.createStartPosition()
-            const skipValidityCheck = true
-            for (let i = 0; i < moveHistory.length; i++){
-                board = this.playMove(board, moveHistory[i], skipValidityCheck)
-            }
-            return board
         }
     
         isGameOver(board){
