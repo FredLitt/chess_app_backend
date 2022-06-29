@@ -430,7 +430,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         isCastlingLegal(board, kingColor, castlingDirection){
             const castlingSquaresAreControlled = this.areCastlingSquaresControlled(board, kingColor, castlingDirection)
             const kingIsInCheck = this.isKingInCheck(board, kingColor)
-            console.log(kingColor, "king in check?", kingIsInCheck)
             const kingHasMoved = this.hasKingMoved(board, kingColor)
             const rookHasMoved = this.hasCastlingRookMoved(board, kingColor, castlingDirection)
             const castlingIsLegal = (!castlingSquaresAreControlled && !kingIsInCheck && !kingHasMoved && !rookHasMoved)
@@ -619,7 +618,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
 
         getFullMove(board, move){
-            console.log("Getting full move:", move)
             if (!this.isPlayableMove(board, move)){
                 return false
             }
@@ -656,11 +654,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             return move
         }
 
-        // Remove validity check when replaying moves
         playMove(board, move){
-            if (!this.isPlayableMove(board, move)){
-                return false
-            }
             const startSquare = this.getSquare(board, move.from)
             const endSquare = this.getSquare(board, move.to)
             let movingPiece = startSquare.piece

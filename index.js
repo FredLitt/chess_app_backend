@@ -1,10 +1,14 @@
 require('dotenv').config()
-const express = require('express')
-const app = express()
-const morgan = require('morgan')
-const cors = require('cors')
 const { Game } = require('./models/game')
 const Chess = require('./game_logic/chess')
+
+const express = require('express')
+const app = express()
+const server = require('http').createServer(app)
+const io = require('socket.io')(server, { cors: { origin: "*"}})
+
+const morgan = require('morgan')
+const cors = require('cors')
 
 app.use(express.static('build'))
 app.use(express.json())
@@ -13,7 +17,7 @@ app.use(cors())
 morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(
   ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
-  
+
 app.post('/api/games', async (request, response, next) => {
   const game = new Game({
       moveHistory: []
@@ -42,7 +46,6 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     piece: request.body.piece,
     from: request.body.from,
     to: request.body.to
-    //data: request.body.data
   }
 
   if (request.body.promotion){
@@ -74,10 +77,10 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
 
 app.delete('/api/games/:id/moves', async (request, response, next) => {
   try {
-    const updatedGame = await Game.updateOne(
-        { _id: request.params.id },
+    const updatedGame = await Game.findByIdAndUpdate(request.params.id,
         { $pop: { moveHistory: 1 }},
         { new: true })
+        console.log("updated game", updatedGame)
         response.json(updatedGame)
   } catch (error){
     next (error)
@@ -121,5 +124,9 @@ app.use(unknownEndpoint)
 app.use(errorHandler)
 
 const PORT = process.env.PORT
-app.listen(PORT)
+server.listen(PORT)
 console.log(`Server running on port ${PORT}`)
+
+io.on('connection', (socket) => {
+  console.log("user connected", socket.id)
+})
