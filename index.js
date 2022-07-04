@@ -58,12 +58,12 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
     const isPlayableMove = chess.isPlayableMove(currentBoard, move)
     const fullMove = chess.getFullMove(currentBoard, move)
-    console.log("Full move:", fullMove)
     if (isPlayableMove){
       try {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
-        { $push: { moveHistory: move }},
+        { $push: { moveHistory: fullMove }},
         { new: true, runValidators: true })
+        console.log(updatedGame)
         response.json(updatedGame)
       } catch (error){
         next(error)
@@ -89,8 +89,7 @@ app.delete('/api/games/:id/moves', async (request, response, next) => {
 
 app.delete('/api/games/:id/new', async (request, response, next) => {
   try {
-    const newGame = await Game.updateOne(
-        { _id: request.params.id },
+    const newGame = await Game.findByIdAndUpdate(request.params.id,
         { $set: { moveHistory: [] }},
         { new: true })
     response.json(newGame)
@@ -129,4 +128,8 @@ console.log(`Server running on port ${PORT}`)
 
 io.on('connection', (socket) => {
   console.log("user connected", socket.id)
+
+  socket.on("move", () => {
+    socket.emit("updated board")
+  })
 })
