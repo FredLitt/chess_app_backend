@@ -73,8 +73,7 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
 
 app.delete('/api/games/:id/moves', async (request, response, next) => {
   try {
-    const updatedGame = await Game.updateOne(
-        { _id: request.params.id },
+    const updatedGame = await Game.findByIdAndUpdate(request.params.id,
         { $pop: { moveHistory: 1 }},
         { new: true })
         response.json(updatedGame)
@@ -85,8 +84,7 @@ app.delete('/api/games/:id/moves', async (request, response, next) => {
 
 app.delete('/api/games/:id/new', async (request, response, next) => {
   try {
-    const newGame = await Game.updateOne(
-        { _id: request.params.id },
+    const newGame = await Game.findByIdAndUpdate(request.params.id,
         { $set: { moveHistory: [] }},
         { new: true })
     response.json(newGame)
