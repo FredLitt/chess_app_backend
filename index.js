@@ -42,7 +42,6 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     piece: request.body.piece,
     from: request.body.from,
     to: request.body.to
-    //data: request.body.data
   }
 
   if (request.body.promotion){
@@ -59,7 +58,7 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     if (isPlayableMove){
       try {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
-        { $push: { moveHistory: move }},
+        { $push: { moveHistory: fullMove }},
         { new: true, runValidators: true })
         response.json(updatedGame)
       } catch (error){
