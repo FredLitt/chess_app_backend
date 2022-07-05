@@ -1,10 +1,14 @@
 require('dotenv').config()
-const express = require('express')
-const app = express()
-const morgan = require('morgan')
-const cors = require('cors')
 const { Game } = require('./models/game')
 const Chess = require('./game_logic/chess')
+
+const express = require('express')
+const app = express()
+const server = require('http').createServer(app)
+const io = require('socket.io')(server, { cors: { origin: "*"}})
+
+const morgan = require('morgan')
+const cors = require('cors')
 
 app.use(express.static('build'))
 app.use(express.json())
@@ -13,7 +17,7 @@ app.use(cors())
 morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(
   ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
-  
+
 app.post('/api/games', async (request, response, next) => {
   const game = new Game({
       moveHistory: []
@@ -54,12 +58,12 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
     const isPlayableMove = chess.isPlayableMove(currentBoard, move)
     const fullMove = chess.getFullMove(currentBoard, move)
-    console.log("Full move:", fullMove)
     if (isPlayableMove){
       try {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
         { $push: { moveHistory: fullMove }},
         { new: true, runValidators: true })
+        console.log(updatedGame)
         response.json(updatedGame)
       } catch (error){
         next(error)
@@ -76,6 +80,7 @@ app.delete('/api/games/:id/moves', async (request, response, next) => {
     const updatedGame = await Game.findByIdAndUpdate(request.params.id,
         { $pop: { moveHistory: 1 }},
         { new: true })
+        console.log("updated game", updatedGame)
         response.json(updatedGame)
   } catch (error){
     next (error)
@@ -118,5 +123,14 @@ app.use(unknownEndpoint)
 app.use(errorHandler)
 
 const PORT = process.env.PORT
-app.listen(PORT)
+server.listen(PORT)
 console.log(`Server running on port ${PORT}`)
+
+io.on('connection', (socket) => {
+  socket.emit("connection")
+  console.log("user connected", socket.id)
+
+  socket.on("update", async () => {
+    io.emit("update")
+  })
+})

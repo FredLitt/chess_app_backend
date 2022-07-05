@@ -430,7 +430,6 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         isCastlingLegal(board, kingColor, castlingDirection){
             const castlingSquaresAreControlled = this.areCastlingSquaresControlled(board, kingColor, castlingDirection)
             const kingIsInCheck = this.isKingInCheck(board, kingColor)
-            console.log(kingColor, "king in check?", kingIsInCheck)
             const kingHasMoved = this.hasKingMoved(board, kingColor)
             const rookHasMoved = this.hasCastlingRookMoved(board, kingColor, castlingDirection)
             const castlingIsLegal = (!castlingSquaresAreControlled && !kingIsInCheck && !kingHasMoved && !rookHasMoved)
@@ -619,48 +618,26 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
 
         getFullMove(board, move){
-            console.log("Getting full move:", move)
-            if (!this.isPlayableMove(board, move)){
-                return false
-            }
- 
+            if (!this.isPlayableMove(board, move)) return false
             move.data = []
             const startSquare = this.getSquare(board, move.from)
             const endSquare = this.getSquare(board, move.to)
-            let movingPiece = move.piece
             const isCapture = endSquare.piece !== null 
             
-            if (isCapture){ 
-                move.data.push("capture")
-            }
-            
-            if (this.isMoveEnPassant(board, move)){
-                move.data.push("enPassant", "capture")
-            }
-
+            if (isCapture) move.data.push("capture")
+            if (this.isMoveEnPassant(board, move)) move.data.push("enPassant", "capture")
             if (this.isMoveCastling(board, move)){
                 const direction = this.isMoveCastling(board, move)
                 move.data.push(direction)
             }
-
-            endSquare.piece = movingPiece
+            endSquare.piece = move.piece
             startSquare.piece = null
-            
-            if (this.isKingInCheckMate(board, this.getOpposingColor(movingPiece.color))){
-                move.data.push("checkmate")
-            }
-
-            if (this.isKingInCheck(board, this.getOpposingColor(movingPiece.color))){
-                move.data.push("check")
-            }
+            if (this.isKingInCheckMate(board, this.getOpposingColor(move.piece.color))) move.data.push("checkmate")
+            if (this.isKingInCheck(board, this.getOpposingColor(move.piece.color))) move.data.push("check")
             return move
         }
 
-        // Remove validity check when replaying moves
         playMove(board, move){
-            if (!this.isPlayableMove(board, move)){
-                return false
-            }
             const startSquare = this.getSquare(board, move.from)
             const endSquare = this.getSquare(board, move.to)
             let movingPiece = startSquare.piece
