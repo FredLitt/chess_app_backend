@@ -676,9 +676,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
         isSquareOnBoard(square){
             const invalidFormat = (square.length !== 2 || typeof square !== "string")
-            if (invalidFormat){ 
-                return false 
-            }
+            if (invalidFormat) return false 
             const x = square[0]
             const y = parseInt(square[1])
             const squareIsOnBoard = (this.xAxis.includes(x) && y <= 8 && y >= 1)

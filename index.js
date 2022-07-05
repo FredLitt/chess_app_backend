@@ -33,7 +33,7 @@ app.post('/api/games', async (request, response, next) => {
 
 app.get('/api/games/:id/moves', async (request, response, next) => {
   try {
-    const game = await Game.findById(request.params.id)
+    const game = await Game.findOne(request)
     response.json(game)
   } catch (error) {
     console.log("Unable to get game")
@@ -84,18 +84,6 @@ app.delete('/api/games/:id/moves', async (request, response, next) => {
         response.json(updatedGame)
   } catch (error){
     next (error)
-  }
-})
-
-app.delete('/api/games/:id/new', async (request, response, next) => {
-  try {
-    const newGame = await Game.findByIdAndUpdate(request.params.id,
-        { $set: { moveHistory: [] }},
-        { new: true })
-    response.json(newGame)
-  } catch (error){
-    console.log("Could not start new game")
-    next(error)
   }
 })
 
