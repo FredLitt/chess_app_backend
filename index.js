@@ -127,9 +127,10 @@ server.listen(PORT)
 console.log(`Server running on port ${PORT}`)
 
 io.on('connection', (socket) => {
+  socket.emit("connection")
   console.log("user connected", socket.id)
 
-  socket.on("move", () => {
-    socket.emit("updated board")
+  socket.on("update", async () => {
+    io.emit("update")
   })
 })
