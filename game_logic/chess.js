@@ -624,16 +624,16 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const endSquare = this.getSquare(board, move.to)
             const isCapture = endSquare.piece !== null 
             
-            if (isCapture) move.data.push("capture")
-            if (this.isMoveEnPassant(board, move)) move.data.push("enPassant", "capture")
+            if (isCapture) { move.data.push("capture") }
+            if (this.isMoveEnPassant(board, move)) { move.data.push("enPassant", "capture") }
             if (this.isMoveCastling(board, move)){
                 const direction = this.isMoveCastling(board, move)
                 move.data.push(direction)
             }
             endSquare.piece = move.piece
             startSquare.piece = null
-            if (this.isKingInCheckMate(board, this.getOpposingColor(move.piece.color))) move.data.push("checkmate")
-            if (this.isKingInCheck(board, this.getOpposingColor(move.piece.color))) move.data.push("check")
+            if (this.isKingInCheckMate(board, this.getOpposingColor(move.piece.color))) { move.data.push("checkmate") }
+            if (this.isKingInCheck(board, this.getOpposingColor(move.piece.color))) { move.data.push("check") }
             return move
         }
 

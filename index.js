@@ -33,7 +33,8 @@ app.post('/api/games', async (request, response, next) => {
 
 app.get('/api/games/:id/moves', async (request, response, next) => {
   try {
-    const game = await Game.findOne(request)
+    const game = await Game.findById(request.params.id)
+    console.log(game)
     response.json(game)
   } catch (error) {
     console.log("Unable to get game")
