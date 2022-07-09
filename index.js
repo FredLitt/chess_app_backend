@@ -33,8 +33,7 @@ app.post('/api/games', async (request, response, next) => {
 
 app.get('/api/games/:id/moves', async (request, response, next) => {
   try {
-    const game = await Game.findById(request.params.id)
-    console.log(game)
+    const game = await Game.findById({_id: request.params.id})
     response.json(game)
   } catch (error) {
     console.log("Unable to get game")
@@ -99,11 +98,6 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 
-if (process.argv.length < 3) {
-  console.log('Please provide the password as an argument: node mongo.js <password>')
-  process.exit(1)
-}
-
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
@@ -111,15 +105,23 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 app.use(errorHandler)
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3001
 server.listen(PORT)
 console.log(`Server running on port ${PORT}`)
 
-io.on('connection', (socket) => {
-  socket.emit("connection")
+io.on("connection", (socket) => {
   console.log("user connected", socket.id)
-
-  socket.on("update", async () => {
-    io.emit("update")
+  socket.on("joined game", async (roomToJoin) => {
+    socket.join(roomToJoin)
+    console.log("joining room:" + roomToJoin)
+  })
+  socket.on("left game", async (roomToLeave) => {
+    socket.leave(roomToLeave)
+    console.log("leaving room:" + roomToLeave)
+  })
+  
+  socket.on("update", async (room) => {
+    socket.to(room).emit("game updated")
+    console.log(io.sockets.adapter.rooms.get(room));
   })
 })
