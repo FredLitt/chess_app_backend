@@ -143,7 +143,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     }
                 }
             }
-            attackingPiecesSquares.forEach(square => attackedSquares.push(this.findSquaresForPiece(board, square, "controlled squares")))
+            attackingPiecesSquares.forEach(square => attackedSquares.push(this.findSquaresForPiece(board, square, "controlledSquares")))
             return attackedSquares.flat()
         }
     
@@ -155,7 +155,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     if (this.getPiecesColor(board, squareToCheck) === color){
                         const piece = this.getSquare(board, squareToCheck).piece
                         const piecesSquare = squareToCheck
-                        const possibleSquares = this.findSquaresForPiece(board, piecesSquare, "possible moves")
+                        const possibleSquares = this.findSquaresForPiece(board, piecesSquare, "possibleMoves")
                         const possibleMoves = possibleSquares.map(possibleSquare => 
                             this.buildMove(piece, { from: piecesSquare, to: possibleSquare}))
                         if (possibleMoves.length !== 0){
@@ -219,7 +219,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                         continue 
                     }
     
-                    if (squaresToFind === "controlled squares") {  
+                    if (squaresToFind === "controlledSquares") {  
                         if (squareHasPiece) {
                             squares.push(possibleSquare)
                             completedDirections.push(direction)
@@ -228,7 +228,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                         squares.push(possibleSquare)
                     }
     
-                    if (squaresToFind === "possible moves") {
+                    if (squaresToFind === "possibleMoves") {
                         
                         const invalidMove = !squareIsOnBoard || squareHasFriendlyPiece
                         if (invalidMove) {
@@ -266,8 +266,8 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 "NorthEast": [ fromRow - 1, fromCol + 1 ],
                 "SouthWest": [ fromRow + 1, fromCol - 1 ],
                 "SouthEast": [ fromRow + 1, fromCol + 1 ],
-                "Castle Kingside": [fromRow, fromCol + 2],
-                "Castle Queenside": [fromRow, fromCol - 2]
+                "CastleKingside": [fromRow, fromCol + 2],
+                "CastleQueenside": [fromRow, fromCol - 2]
             }
     
             for (const move in kingMoves){
@@ -279,7 +279,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 const squareHasFriendlyPiece = this.getPiecesColor(board, kingsSquare) === this.getPiecesColor(board, possibleSquare)
                 const squareHasEnemyPiece = squareHasPiece && !squareHasFriendlyPiece
                 
-                if (squaresToFind === "possible moves"){
+                if (squaresToFind === "possibleMoves"){
                     
                     if (!squareIsOnBoard || squareHasFriendlyPiece){ continue }
                     
@@ -298,7 +298,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     }
                     squares.push(possibleSquare)
                 }
-                if (squaresToFind === "controlled squares"){
+                if (squaresToFind === "controlledSquares"){
                     if (!squareIsOnBoard || move.includes("Castle")){ continue }
     
                     squares.push(possibleSquare)
@@ -329,14 +329,14 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
     
                 if (!squareIsOnBoard) { continue }
     
-                if (squaresToFind === "possible moves"){
+                if (squaresToFind === "possibleMoves"){
                     if (squareHasFriendlyPiece){ continue }
                     const moveExposesKing = this.doesMoveExposeKing(board, { from: knightsSquare, to: possibleSquare }, knightsColor)
                     if (moveExposesKing){ continue }
                     squares.push(possibleSquare)
                 }
     
-                if (squaresToFind === "controlled squares"){
+                if (squaresToFind === "controlledSquares"){
                     squares.push(possibleSquare)
                 }
             }
@@ -374,7 +374,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                 
                 if (!squareIsOnBoard){ continue }
     
-                if (squaresToFind === "possible moves"){
+                if (squaresToFind === "possibleMoves"){
                     
                     if (move === "ForwardOne"){
                         const pawnIsBlocked = this.isSquareOccupied(board, possibleSquare)
@@ -401,7 +401,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
                     squares.push(possibleSquare)
                 }
     
-                if (squaresToFind === "controlled squares"){
+                if (squaresToFind === "controlledSquares"){
                     if (move === "CaptureEast" || move === "CaptureWest"){ 
                         squares.push(possibleSquare)
                     }       
@@ -414,12 +414,12 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             let squaresToCheck
             const castlingSquares = {
                 "white": {
-                    "Castle Kingside": ["f1", "g1"],
-                    "Castle Queenside": ["d1", "c1", "b1"],
+                    "CastleKingside": ["f1", "g1"],
+                    "CastleQueenside": ["d1", "c1", "b1"],
                 },
                 "black": {
-                    "Castle Kingside": ["f8", "g8"],
-                    "Castle Queenside":  ["d8", "c8", "b8"],
+                    "CastleKingside": ["f8", "g8"],
+                    "CastleQueenside":  ["d8", "c8", "b8"],
                 }
             }
             squaresToCheck = castlingSquares[kingColor][castlingDirection]
@@ -450,12 +450,12 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         hasCastlingRookMoved(board, color, castlingDirection){
             const rookStartSquares = {
                 "white": {
-                    "Castle Kingside": "h1",
-                    "Castle Queenside": "a1"
+                    "CastleKingside": "h1",
+                    "CastleQueenside": "a1"
                 },
                 "black": {
-                    "Castle Kingside": "h8",
-                    "Castle Queenside": "a8"
+                    "CastleKingside": "h8",
+                    "CastleQueenside": "a8"
                 }
             }
             const castlingRookSquare = rookStartSquares[color][castlingDirection]
@@ -531,8 +531,8 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const kingOnStartSquare = move.from === startSquare
             const kingWentKingside = move.to === kingsideEndSquare
             const kingWentQueenside = move.to === queensideEndSquare
-            if (kingOnStartSquare && kingWentKingside){ return "Castle Kingside" }
-            if (kingOnStartSquare && kingWentQueenside){ return "Castle Queenside" }
+            if (kingOnStartSquare && kingWentKingside){ return "CastleKingside" }
+            if (kingOnStartSquare && kingWentQueenside){ return "CastleQueenside" }
             return false
         }
     
@@ -613,7 +613,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
         }
 
         isMoveLegal(board, move){
-            const legalMoves = this.findSquaresForPiece(board, move.from, "possible moves")
+            const legalMoves = this.findSquaresForPiece(board, move.from, "possibleMoves")
             return legalMoves.some(legalMove => legalMove === move.to)
         }
 
@@ -738,7 +738,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             }
 
             if (isCastle){
-                move.data.includes("Castle Kingside") ? san = "O-O" : san = "O-O-O"
+                move.data.includes("CastleKingside") ? san = "O-O" : san = "O-O-O"
             }
 
             if (isCheckmate){
@@ -788,15 +788,15 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const checkmate = this.isKingInCheckMate(board, "white") || this.isKingInCheckMate(board, "black")
             if (checkmate){
                 return {
-                    gameOver: true,
-                    result: this.isKingInCheckMate(board, "white") ? "black wins" : "white wins"
+                    result: this.isKingInCheckMate(board, "white") ? "Black wins" : "White wins",
+                    score: this.isKingInCheckMate(board, "white") ? "0-1" : "1-0"
                 }
             }
             const currentPlayersTurn = this.getWhoseTurn(this.moveHistory)
             if (this.findAllPossibleMoves(board, currentPlayersTurn).length === 0){
                 return {
-                    gameOver: true,
-                    result: "stalemate"
+                    result: "Stalemate",
+                    score: "1/2 - 1/2"
                 }
             }
             return false
