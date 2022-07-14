@@ -63,7 +63,6 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
         { $push: { moveHistory: fullMove }},
         { new: true, runValidators: true })
-        console.log(updatedGame)
         response.json(updatedGame)
       } catch (error){
         next(error)
@@ -111,17 +110,22 @@ console.log(`Server running on port ${PORT}`)
 
 io.on("connection", (socket) => {
   console.log("user connected", socket.id)
-  socket.on("joined game", async (roomToJoin) => {
+  socket.on("joinedGame", async (roomToJoin) => {
     socket.join(roomToJoin)
     console.log("joining room:" + roomToJoin)
   })
-  socket.on("left game", async (roomToLeave) => {
+  socket.on("leftGame", async (roomToLeave) => {
     socket.leave(roomToLeave)
     console.log("leaving room:" + roomToLeave)
   })
   
   socket.on("update", async (room) => {
-    socket.to(room).emit("game updated")
+    console.log("update!")
+    socket.to(room).emit("gameUpdate")
     console.log(io.sockets.adapter.rooms.get(room));
+  })
+
+  socket.on("resign", async (room) => {
+    socket.to(room).emit("opponentResigned")
   })
 })
