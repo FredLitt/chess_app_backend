@@ -14,6 +14,8 @@ app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 
+const chess = new Chess()
+
 morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(morgan(
   ':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
@@ -52,7 +54,6 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     move.promotion = request.body.promotion
   }
   
-  const chess = new Chess()
   try {
     const game = await Game.findById(request.params.id)
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
