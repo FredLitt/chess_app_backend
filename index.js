@@ -58,9 +58,9 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     const game = await Game.findById(request.params.id)
     const currentBoard = chess.createBoardFromMoveHistory(game.moveHistory)
     const isPlayableMove = chess.isPlayableMove(currentBoard, move)
-    const fullMove = chess.getFullMove(currentBoard, move)
     if (isPlayableMove){
       try {
+      const fullMove = chess.getFullMove(currentBoard, move)
       const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
         { $push: { moveHistory: fullMove }},
         { new: true, runValidators: true })
@@ -111,19 +111,45 @@ console.log(`Server running on port ${PORT}`)
 
 io.on("connection", (socket) => {
   console.log("user connected", socket.id)
-  socket.on("joinedGame", async (roomToJoin) => {
-    socket.join(roomToJoin)
-    console.log("joining room:" + roomToJoin)
+
+  socket.on("createdGame", async (gameData) => {
+    socket.join(gameData.id)
+    console.log("Created new game with ID:", gameData.id)
   })
+
+  socket.on("joinGame", async (gameID) => {
+    console.log("joining game:", gameID)
+    socket.join(gameID)
+  })
+
+  socket.on("requestJoinGame", async (gameID) => {
+    console.log("attempting to join game:", gameID)
+    const playersInGame = io.sockets.adapter.rooms.get(gameID)
+    if (playersInGame){
+      if (playersInGame.size === 2){
+        socket.to(socket.id).emit("gameFull")
+      }
+      if (playersInGame.size === 1){
+        const [first] = playersInGame
+        io.to(first).emit("requestColor", socket.id)
+      }
+    }
+    socket.join(gameID)
+  })
+
+  socket.on("assignColor", async (playerData) => {
+    console.log("assigning color")
+    const { playerID, gameID, color } = playerData
+    io.to(playerID).emit("joinGame", { id: gameID, color } )
+  })
+
   socket.on("leftGame", async (roomToLeave) => {
     socket.leave(roomToLeave)
     console.log("leaving room:" + roomToLeave)
   })
   
   socket.on("update", async (room) => {
-    console.log("update!")
     socket.to(room).emit("gameUpdate")
-    console.log(io.sockets.adapter.rooms.get(room));
   })
 
   socket.on("resign", async (room) => {
