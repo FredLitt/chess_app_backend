@@ -22,7 +22,8 @@ app.use(morgan(
 
 app.post('/api/games', async (request, response, next) => {
   const game = new Game({
-      moveHistory: []
+      moveHistory: [],
+      status: { result: "undecided", score: "undecided" }
   })
   try {
     const savedGame = await game.save()
@@ -60,18 +61,31 @@ app.post('/api/games/:id/moves', async (request, response, next) => {
     const isPlayableMove = chess.isPlayableMove(currentBoard, move)
     if (isPlayableMove){
       try {
-      const fullMove = chess.getFullMove(currentBoard, move)
-      const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
-        { $push: { moveHistory: fullMove }},
-        { new: true, runValidators: true })
-        response.json(updatedGame)
-      } catch (error){
-        next(error)
-      }
+        const fullMove = chess.getFullMove(currentBoard, move)
+        const updatedGame = await Game.findByIdAndUpdate(request.params.id, 
+          { $push: { moveHistory: fullMove }},
+          { new: true, runValidators: true })
+          response.json(updatedGame)
+        } catch (error){
+          next(error)
+        }
     }
   } catch (error) {
     console.log("Unable to validate move")
     next(error)
+  }
+})
+
+app.patch('/api/games/:id/result', async (request, response, next) => {
+  try {
+    const updatedGame = await Game.findByIdAndUpdate(request.params.id,
+        { status: request.body },
+        { new: true })
+        console.log("updated game", updatedGame)
+        response.json(updatedGame)
+  } catch (error){
+    console.log(error)
+    next (error)
   }
 })
 
@@ -114,7 +128,6 @@ io.on("connection", (socket) => {
 
   socket.on("createdGame", async (gameData) => {
     socket.join(gameData.id)
-    console.log("Created new game with ID:", gameData.id)
   })
 
   socket.on("joinGame", async (gameID) => {

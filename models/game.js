@@ -83,8 +83,14 @@ const moveSchema = new mongoose.Schema({
 
 })
 
+const statusSchema = new mongoose.Schema({
+  result: { type: String, required: true },
+  score: { type: String, required: true } 
+})
+
 const gameSchema = new mongoose.Schema({
-    moveHistory: [ moveSchema ]
+    moveHistory: [ moveSchema ],
+    status: statusSchema
 })
 
 gameSchema.set('toJSON', {
