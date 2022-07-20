@@ -668,11 +668,7 @@ const { whitePawn, whiteKnight, whiteBishop, whiteRook, whiteQueen, whiteKing,
             const squareIsOnBoard = (this.xAxis.includes(x) && y <= 8 && y >= 1)
             return squareIsOnBoard
         }
-    
-        squaresAreTheSame(square1, square2){
-            return square1 === square2
-        }
-    
+
         getSquare(board, square){
             if (!this.isSquareOnBoard(square)){
                 return null
